@@ -1,6 +1,7 @@
+import fs from 'fs';
+import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
 
@@ -43,6 +44,20 @@ export default defineConfig(() => {
           enabled: true,
         },
       }),
+      {
+        name: 'generate-404-fallback',
+        closeBundle() {
+          try {
+            const indexPath = path.resolve(__dirname, 'dist', 'index.html');
+            const notFoundPath = path.resolve(__dirname, 'dist', '404.html');
+            if (fs.existsSync(indexPath)) {
+              fs.copyFileSync(indexPath, notFoundPath);
+            }
+          } catch (err) {
+            console.warn('Could not copy 404.html fallback', err);
+          }
+        },
+      },
     ],
     resolve: {
       alias: {
