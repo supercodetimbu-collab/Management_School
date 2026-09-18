@@ -100,22 +100,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+    <header className="sticky top-0 z-30 w-full max-w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-5 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-1">
           {/* Left section: Mobile Page Title or Desktop Logo Branding */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
             {onOpenMobileMenu && (
               <button
                 onClick={onOpenMobileMenu}
-                className="md:hidden p-1.5 -ml-1 text-slate-700 hover:bg-slate-100 rounded-xl"
+                className="md:hidden p-1.5 -ml-1 text-slate-700 hover:bg-slate-100 rounded-xl flex-shrink-0"
                 aria-label="Buka Menu"
               >
                 <Menu className="w-5 h-5" />
               </button>
             )}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-teal-700 to-teal-500 flex items-center justify-center text-white shadow-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-teal-700 to-teal-500 flex items-center justify-center text-white shadow-xs flex-shrink-0">
                 <School className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="hidden sm:block">
@@ -131,11 +131,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </div>
 
               {/* Mobile View: Dynamic Page Title */}
-              <div className="sm:hidden flex flex-col">
-                <span className="font-bold text-slate-800 text-sm tracking-tight">
+              <div className="sm:hidden flex flex-col min-w-0 overflow-hidden">
+                <span className="font-bold text-slate-800 text-xs tracking-tight truncate max-w-[110px]">
                   {getModuleTitle(currentModule)}
                 </span>
-                <span className="text-[10px] text-teal-600 font-medium">
+                <span className="text-[10px] text-teal-600 font-medium truncate max-w-[110px]">
                   {schoolProfile.name}
                 </span>
               </div>
@@ -143,39 +143,41 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
 
           {/* Middle/Right Quick Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
             {/* Quick Global Search Trigger Button */}
             <button
               onClick={onOpenSearch}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 text-xs transition cursor-pointer"
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 text-xs transition cursor-pointer flex-shrink-0"
               title="Cari data siswa, guru, jadwal, nilai (Ctrl+K)"
             >
-              <Search className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden md:inline">Cari Cepat...</span>
-              <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-white text-slate-500 rounded border border-slate-300">
+              <Search className="w-4 h-4 text-slate-500" />
+              <span className="hidden md:inline ml-1.5">Cari Cepat...</span>
+              <kbd className="hidden lg:inline-block ml-1.5 px-1.5 py-0.5 text-[9px] font-mono bg-white text-slate-500 rounded border border-slate-300">
                 /
               </kbd>
             </button>
 
-            {/* PWA Install Button */}
-            <PWAInstallButton variant="header" />
+            {/* PWA Install Button (Hidden in compact mobile header, available in sidebar/drawer) */}
+            <div className="hidden sm:block flex-shrink-0">
+              <PWAInstallButton variant="header" />
+            </div>
 
             {/* Quick Role Switcher Pill */}
-            <div className="relative" ref={roleDropdownRef}>
+            <div className="relative flex-shrink-0" ref={roleDropdownRef}>
               <button
                 onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                   roleLabels[currentRole]?.badgeColor || 'bg-slate-100 text-slate-700'
                 }`}
                 title="Ganti Mode / Akun Role Demo"
               >
-                <span className="inline-block w-2 h-2 rounded-full bg-current"></span>
-                <span>{roleLabels[currentRole]?.label || currentRole}</span>
-                <ChevronDown className="w-3 h-3 opacity-70" />
+                <span className="inline-block w-2 h-2 rounded-full bg-current flex-shrink-0"></span>
+                <span className="truncate max-w-[60px] sm:max-w-none">{roleLabels[currentRole]?.label || currentRole}</span>
+                <ChevronDown className="w-3 h-3 opacity-70 flex-shrink-0" />
               </button>
 
               {showRoleDropdown && (
-                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-3 py-1.5 border-b border-slate-100">
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pilih Role Pengguna (Demo)</p>
                     <p className="text-xs text-slate-500">Uji coba instan tanpa relogin</p>
@@ -234,7 +236,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </button>
 
               {showNotifDropdown && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-100 py-3 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white shadow-2xl border border-slate-100 py-3 z-50 animate-in fade-in zoom-in-95 duration-100">
                   <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-800">Notifikasi</span>

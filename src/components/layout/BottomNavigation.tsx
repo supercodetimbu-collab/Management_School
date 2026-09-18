@@ -24,8 +24,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200 pb-safe shadow-lg">
-      <div className="grid grid-cols-5 h-16 max-w-lg mx-auto items-center px-1">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 w-full max-w-full overflow-hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 pb-safe shadow-lg">
+      <div className="grid grid-cols-5 h-16 max-w-lg mx-auto items-center px-1 w-full">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = currentModule === tab.id;

@@ -100,7 +100,7 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased selection:bg-teal-500 selection:text-white">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 flex flex-col antialiased selection:bg-teal-500 selection:text-white">
       {/* Top Application Header */}
       <AppHeader
         currentModule={currentModule}
@@ -109,7 +109,7 @@ const MainAppContent: React.FC = () => {
         onOpenSearch={() => setIsSearchOpen(true)}
       />
 
-      <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 gap-6">
+      <div className="flex-1 flex max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-5 gap-6 overflow-x-hidden">
         {/* Desktop Sidebar Navigation */}
         <Sidebar
           currentModule={currentModule}
@@ -117,7 +117,7 @@ const MainAppContent: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 min-w-0 pb-20 md:pb-6">{renderModule()}</main>
+        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden pb-24 md:pb-6">{renderModule()}</main>
       </div>
 
       {/* Mobile Drawer (Full Menu) */}

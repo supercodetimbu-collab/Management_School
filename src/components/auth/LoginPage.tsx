@@ -60,7 +60,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/20 to-slate-100 flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gradient-to-b from-slate-50 via-teal-50/20 to-slate-100 flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8">
       {/* Top Banner PWA prompt */}
       <div className="mb-4">
         <PWAInstallButton variant="header" />

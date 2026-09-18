@@ -181,30 +181,32 @@ export const ReportCardsModule: React.FC = () => {
         {/* Capaian Kompetensi Mapel Table */}
         <div className="mb-6">
           <h4 className="text-xs font-bold uppercase text-slate-800 mb-2">A. NILAI AKADEMIK & CAPAIAN KOMPETENSI</h4>
-          <table className="w-full text-left text-xs border border-slate-300">
-            <thead className="bg-slate-100 font-bold uppercase text-slate-700 border-b border-slate-300">
-              <tr>
-                <th className="p-2 border-r border-slate-300 w-10 text-center">No</th>
-                <th className="p-2 border-r border-slate-300">Mata Pelajaran</th>
-                <th className="p-2 border-r border-slate-300 w-16 text-center">KKM</th>
-                <th className="p-2 border-r border-slate-300 w-20 text-center">Nilai Akhir</th>
-                <th className="p-2 border-r border-slate-300 w-16 text-center">Predikat</th>
-                <th className="p-2">Capaian Kompetensi Pembelajaran</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {studentGrades.map((g, idx) => (
-                <tr key={g.code}>
-                  <td className="p-2 border-r border-slate-300 text-center text-slate-500">{idx + 1}</td>
-                  <td className="p-2 border-r border-slate-300 font-semibold">{g.name}</td>
-                  <td className="p-2 border-r border-slate-300 text-center">{g.kkm}</td>
-                  <td className="p-2 border-r border-slate-300 text-center font-bold text-teal-800">{g.score}</td>
-                  <td className="p-2 border-r border-slate-300 text-center font-bold">{g.predicate}</td>
-                  <td className="p-2 text-[11px] leading-relaxed text-slate-600">{g.desc}</td>
+          <div className="overflow-x-auto max-w-full rounded-lg border border-slate-300">
+            <table className="w-full text-left text-xs min-w-[550px]">
+              <thead className="bg-slate-100 font-bold uppercase text-slate-700 border-b border-slate-300">
+                <tr>
+                  <th className="p-2 border-r border-slate-300 w-10 text-center">No</th>
+                  <th className="p-2 border-r border-slate-300">Mata Pelajaran</th>
+                  <th className="p-2 border-r border-slate-300 w-16 text-center">KKM</th>
+                  <th className="p-2 border-r border-slate-300 w-20 text-center">Nilai Akhir</th>
+                  <th className="p-2 border-r border-slate-300 w-16 text-center">Predikat</th>
+                  <th className="p-2">Capaian Kompetensi Pembelajaran</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {studentGrades.map((g, idx) => (
+                  <tr key={g.code}>
+                    <td className="p-2 border-r border-slate-300 text-center text-slate-500">{idx + 1}</td>
+                    <td className="p-2 border-r border-slate-300 font-semibold">{g.name}</td>
+                    <td className="p-2 border-r border-slate-300 text-center">{g.kkm}</td>
+                    <td className="p-2 border-r border-slate-300 text-center font-bold text-teal-800">{g.score}</td>
+                    <td className="p-2 border-r border-slate-300 text-center font-bold">{g.predicate}</td>
+                    <td className="p-2 text-[11px] leading-relaxed text-slate-600">{g.desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Ekstrakurikuler & Kehadiran side by side */}
@@ -212,48 +214,52 @@ export const ReportCardsModule: React.FC = () => {
           {/* Ekstrakurikuler */}
           <div>
             <h4 className="text-xs font-bold uppercase text-slate-800 mb-2">B. KEGIATAN EKSTRAKURIKULER</h4>
-            <table className="w-full text-left text-xs border border-slate-300">
-              <thead className="bg-slate-100 font-bold border-b border-slate-300">
-                <tr>
-                  <th className="p-2 border-r border-slate-300">Nama Ekstrakurikuler</th>
-                  <th className="p-2 border-r border-slate-300 w-16 text-center">Predikat</th>
-                  <th className="p-2">Keterangan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                <tr>
-                  <td className="p-2 border-r border-slate-300 font-semibold">Pramuka Wajib</td>
-                  <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
-                  <td className="p-2 text-[11px]">Sangat aktif, disiplin, dan berinisiatif tinggi.</td>
-                </tr>
-                <tr>
-                  <td className="p-2 border-r border-slate-300 font-semibold">Robotika & Koding</td>
-                  <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
-                  <td className="p-2 text-[11px]">Berhasil merancang purwarupa IoT sekolah.</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="overflow-x-auto max-w-full rounded-lg border border-slate-300">
+              <table className="w-full text-left text-xs min-w-[300px]">
+                <thead className="bg-slate-100 font-bold border-b border-slate-300">
+                  <tr>
+                    <th className="p-2 border-r border-slate-300">Nama Ekstrakurikuler</th>
+                    <th className="p-2 border-r border-slate-300 w-16 text-center">Predikat</th>
+                    <th className="p-2">Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  <tr>
+                    <td className="p-2 border-r border-slate-300 font-semibold">Pramuka Wajib</td>
+                    <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
+                    <td className="p-2 text-[11px]">Sangat aktif, disiplin, dan berinisiatif tinggi.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border-r border-slate-300 font-semibold">Robotika & Koding</td>
+                    <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
+                    <td className="p-2 text-[11px]">Berhasil merancang purwarupa IoT sekolah.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Kehadiran */}
           <div>
             <h4 className="text-xs font-bold uppercase text-slate-800 mb-2">C. REKAPITULASI KEHADIRAN</h4>
-            <table className="w-full text-left text-xs border border-slate-300">
-              <tbody className="divide-y divide-slate-200">
-                <tr>
-                  <td className="p-2 border-r border-slate-300 font-semibold">Sakit (S)</td>
-                  <td className="p-2 font-bold">{sakit} hari</td>
-                </tr>
-                <tr>
-                  <td className="p-2 border-r border-slate-300 font-semibold">Izin (I)</td>
-                  <td className="p-2 font-bold">{izin} hari</td>
-                </tr>
-                <tr>
-                  <td className="p-2 border-r border-slate-300 font-semibold">Tanpa Keterangan (A)</td>
-                  <td className="p-2 font-bold">{alpa} hari</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="overflow-x-auto max-w-full rounded-lg border border-slate-300">
+              <table className="w-full text-left text-xs">
+                <tbody className="divide-y divide-slate-200">
+                  <tr>
+                    <td className="p-2 border-r border-slate-300 font-semibold">Sakit (S)</td>
+                    <td className="p-2 font-bold">{sakit} hari</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border-r border-slate-300 font-semibold">Izin (I)</td>
+                    <td className="p-2 font-bold">{izin} hari</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border-r border-slate-300 font-semibold">Tanpa Keterangan (A)</td>
+                    <td className="p-2 font-bold">{alpa} hari</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
