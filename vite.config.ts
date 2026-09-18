@@ -48,9 +48,9 @@ export default defineConfig(() => {
         name: 'generate-404-fallback',
         closeBundle() {
           try {
-            const currentDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
-            const indexPath = path.resolve(currentDir, 'dist', 'index.html');
-            const notFoundPath = path.resolve(currentDir, 'dist', '404.html');
+            const cwd = process.cwd();
+            const indexPath = path.resolve(cwd, 'dist', 'index.html');
+            const notFoundPath = path.resolve(cwd, 'dist', '404.html');
             if (fs.existsSync(indexPath)) {
               fs.copyFileSync(indexPath, notFoundPath);
             }
@@ -62,7 +62,7 @@ export default defineConfig(() => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(typeof __dirname !== 'undefined' ? __dirname : process.cwd(), '.'),
+        '@': path.resolve(process.cwd(), '.'),
       },
     },
     server: {
