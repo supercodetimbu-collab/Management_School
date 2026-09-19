@@ -24,6 +24,7 @@ import {
   HelpCircle,
   LogOut,
   TrendingUp,
+  User as UserIcon,
 } from 'lucide-react';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 import { UserRole } from '../../types';
@@ -41,7 +42,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   currentModule,
   setCurrentModule,
 }) => {
-  const { currentUser, currentRole, quickLoginAsRole, logout } = useAuth();
+  const { currentUser, currentRole, logout } = useAuth();
   const { schoolProfile } = useSiakadData();
 
   if (!isOpen) return null;
@@ -102,28 +103,25 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </div>
         </div>
 
-        {/* Quick Role Switcher Pill Bar for Mobile Demo Testing */}
-        <div className="px-3 py-2 bg-slate-50 border-b border-slate-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Ganti Mode Akun Demo:
-          </p>
-          <div className="grid grid-cols-3 gap-1">
-            {(Object.keys(roleLabels) as UserRole[]).map((r) => (
-              <button
-                key={r}
-                onClick={() => {
-                  quickLoginAsRole(r);
-                }}
-                className={`py-1 px-1.5 rounded-md text-[10px] font-bold text-center border transition ${
-                  currentRole === r
-                    ? 'bg-teal-600 text-white border-teal-700'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                {roleLabels[r]}
-              </button>
-            ))}
-          </div>
+        {/* User Quick Info & Profile Action */}
+        <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
+          <button
+            onClick={() => navigateTo('profile')}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition cursor-pointer"
+          >
+            <UserIcon className="w-3.5 h-3.5" />
+            <span>Profil & Akun Saya</span>
+          </button>
+
+          {(currentRole === 'admin' || currentRole === 'superadmin') && (
+            <button
+              onClick={() => navigateTo('user_management')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100 transition cursor-pointer"
+            >
+              <UserCog className="w-3.5 h-3.5" />
+              <span>{currentRole === 'superadmin' ? 'Akun Global' : 'Kelola Akun'}</span>
+            </button>
+          )}
         </div>
 
         {/* Menu Navigation List */}

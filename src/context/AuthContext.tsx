@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
-import { DEMO_ACCOUNTS, INITIAL_PERMISSIONS } from '../data/initialData';
+import { User, UserRole, UserAccount, SchoolEntity } from '../types';
+import { INITIAL_SYSTEM_ACCOUNTS, INITIAL_SCHOOLS_LIST, INITIAL_PERMISSIONS } from '../data/initialData';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -8,17 +8,63 @@ interface AuthContextType {
   isAuthenticated: boolean;
   selectedChildId: string | null;
   setSelectedChildId: (id: string) => void;
+  accounts: UserAccount[];
+  schools: SchoolEntity[];
   login: (username: string, pass: string) => { success: boolean; message?: string };
-  quickLoginAsRole: (role: UserRole) => void;
   logout: () => void;
   updateCurrentUserProfile: (data: Partial<User>) => void;
+  changeSelfUsername: (newUsername: string) => { success: boolean; message: string };
+  changeSelfPassword: (oldPass: string, newPass: string) => { success: boolean; message: string };
+  createSchoolWithAdmin: (
+    school: Omit<SchoolEntity, 'id' | 'adminId' | 'adminUsername' | 'adminName' | 'createdAt'>,
+    admin: { name: string; username: string; password: string; email: string; phone?: string }
+  ) => { success: boolean; message: string };
+  createUserAccount: (
+    accountData: Omit<UserAccount, 'id' | 'createdAt' | 'updatedAt'>
+  ) => { success: boolean; message: string };
+  updateUserStatus: (userId: string, status: 'active' | 'blocked', reason?: string) => { success: boolean; message: string };
+  deleteUserAccount: (userId: string) => { success: boolean; message: string };
+  adminResetPassword: (userId: string, newPass: string) => { success: boolean; message: string };
   hasPermission: (permissionCode: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize with admin demo user by default for instant smooth inspection, or read from storage
+  // 1. Persistent System Accounts
+  const [accounts, setAccounts] = useState<UserAccount[]>(() => {
+    const saved = localStorage.getItem('siakad_system_accounts');
+    if (saved) {
+      try {
+        const parsed: UserAccount[] = JSON.parse(saved);
+        // Ensure default superadmin tn.timbu is always present
+        const hasTimbu = parsed.some((a) => a.username.toLowerCase() === 'tn.timbu');
+        if (!hasTimbu) {
+          const defaultSuper = INITIAL_SYSTEM_ACCOUNTS.find((a) => a.username === 'tn.timbu');
+          if (defaultSuper) parsed.unshift(defaultSuper);
+        }
+        return parsed;
+      } catch (e) {
+        console.error('Failed to parse saved system accounts', e);
+      }
+    }
+    return INITIAL_SYSTEM_ACCOUNTS;
+  });
+
+  // 2. Persistent Registered Schools
+  const [schools, setSchools] = useState<SchoolEntity[]>(() => {
+    const saved = localStorage.getItem('siakad_system_schools');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved schools', e);
+      }
+    }
+    return INITIAL_SCHOOLS_LIST;
+  });
+
+  // 3. Current Authenticated User (null if logged out)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('siakad_auth_user');
     if (saved) {
@@ -28,14 +74,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse saved auth user', e);
       }
     }
-    // Default to admin for first load
-    return DEMO_ACCOUNTS.admin.user;
+    return null;
   });
 
   const [selectedChildId, setSelectedChildId] = useState<string | null>(() => {
-    return 'std-01'; // Default first child (Muhammad Farhan Santoso)
+    return 'std-01'; // Default child for demo orangtua
   });
 
+  // Sync accounts to localStorage
+  useEffect(() => {
+    localStorage.setItem('siakad_system_accounts', JSON.stringify(accounts));
+  }, [accounts]);
+
+  // Sync schools to localStorage
+  useEffect(() => {
+    localStorage.setItem('siakad_system_schools', JSON.stringify(schools));
+  }, [schools]);
+
+  // Sync currentUser to localStorage
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('siakad_auth_user', JSON.stringify(currentUser));
@@ -47,49 +103,329 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       localStorage.removeItem('siakad_auth_user');
     }
-  }, [currentUser]);
+  }, [currentUser, selectedChildId]);
 
-  const login = (username: string, pass: string) => {
-    const cleanUsername = username.trim().toLowerCase();
-    const cleanPass = pass.trim();
+  // Login handler
+  const login = (usernameInput: string, passInput: string) => {
+    const cleanUsername = usernameInput.trim().toLowerCase();
+    const cleanPass = passInput.trim();
 
-    // Check in demo accounts
-    const accountEntry = Object.values(DEMO_ACCOUNTS).find(
-      (acc) => acc.user.username.toLowerCase() === cleanUsername || acc.user.email.toLowerCase() === cleanUsername
+    if (!cleanUsername || !cleanPass) {
+      return { success: false, message: 'Harap masukkan username dan password.' };
+    }
+
+    // Match in accounts
+    const account = accounts.find(
+      (acc) => acc.username.toLowerCase() === cleanUsername || acc.email.toLowerCase() === cleanUsername
     );
 
-    if (accountEntry) {
-      if (accountEntry.pass === cleanPass || cleanPass === 'demo123') {
-        setCurrentUser(accountEntry.user);
-        return { success: true };
-      } else {
-        return { success: false, message: 'Password salah. Gunakan password "demo123".' };
-      }
+    if (!account) {
+      return {
+        success: false,
+        message: 'Username atau akun tidak terdaftar. Hubungi administrator sekolah.',
+      };
     }
 
-    return {
-      success: false,
-      message: 'Akun tidak ditemukan. Gunakan salah satu username demo (admin, guru, siswa, orangtua, kepsek, superadmin) dengan password "demo123".',
+    // Check account status
+    if (account.status === 'blocked') {
+      return {
+        success: false,
+        message: `Akun Anda telah dinonaktifkan/diblokir oleh Administrator. ${account.blockedReason ? `Alasan: ${account.blockedReason}` : 'Hubungi pihak sekolah untuk informasi lebih lanjut.'}`,
+      };
+    }
+
+    // Check password
+    if (account.password !== cleanPass) {
+      return {
+        success: false,
+        message: 'Password yang Anda masukkan salah. Silakan coba kembali.',
+      };
+    }
+
+    // Extract User without sensitive password
+    const safeUser: User = {
+      id: account.id,
+      username: account.username,
+      name: account.name,
+      email: account.email,
+      role: account.role,
+      avatar: account.avatar,
+      phone: account.phone,
+      schoolId: account.schoolId,
+      schoolName: account.schoolName,
+      status: account.status,
+      linkedId: account.linkedId,
+      linkedStudentIds: account.linkedStudentIds,
+      createdAt: account.createdAt,
+      updatedAt: account.updatedAt,
     };
-  };
 
-  const quickLoginAsRole = (role: UserRole) => {
-    if (DEMO_ACCOUNTS[role]) {
-      setCurrentUser(DEMO_ACCOUNTS[role].user);
-      if (role === 'orangtua' && DEMO_ACCOUNTS[role].user.linkedStudentIds) {
-        setSelectedChildId(DEMO_ACCOUNTS[role].user.linkedStudentIds[0]);
-      }
-    }
+    setCurrentUser(safeUser);
+    return { success: true };
   };
 
   const logout = () => {
     setCurrentUser(null);
   };
 
+  // Self-profile edit
   const updateCurrentUserProfile = (data: Partial<User>) => {
     if (!currentUser) return;
-    const updated = { ...currentUser, ...data, updatedAt: new Date().toISOString().split('T')[0] };
-    setCurrentUser(updated);
+    const now = new Date().toISOString().split('T')[0];
+
+    const updatedUser: User = {
+      ...currentUser,
+      ...data,
+      updatedAt: now,
+    };
+
+    setCurrentUser(updatedUser);
+
+    // Update in accounts
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.id === currentUser.id
+          ? { ...acc, ...data, updatedAt: now }
+          : acc
+      )
+    );
+  };
+
+  // Self username update
+  const changeSelfUsername = (newUsername: string): { success: boolean; message: string } => {
+    if (!currentUser) return { success: false, message: 'Sesi pengguna tidak valid.' };
+    const clean = newUsername.trim().toLowerCase();
+
+    if (!clean || clean.length < 3) {
+      return { success: false, message: 'Username minimal 3 karakter.' };
+    }
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(clean)) {
+      return { success: false, message: 'Username hanya boleh huruf, angka, titik, strip, dan underscore.' };
+    }
+
+    // Check uniqueness
+    const exists = accounts.some(
+      (a) => a.id !== currentUser.id && a.username.toLowerCase() === clean
+    );
+    if (exists) {
+      return { success: false, message: 'Username tersebut sudah digunakan oleh akun lain.' };
+    }
+
+    const now = new Date().toISOString().split('T')[0];
+    const updatedUser: User = { ...currentUser, username: clean, updatedAt: now };
+    setCurrentUser(updatedUser);
+
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.id === currentUser.id ? { ...acc, username: clean, updatedAt: now } : acc
+      )
+    );
+
+    return { success: true, message: 'Username berhasil diperbarui.' };
+  };
+
+  // Self password update
+  const changeSelfPassword = (oldPass: string, newPass: string): { success: boolean; message: string } => {
+    if (!currentUser) return { success: false, message: 'Sesi pengguna tidak valid.' };
+
+    const cleanOld = oldPass.trim();
+    const cleanNew = newPass.trim();
+
+    if (!cleanOld || !cleanNew) {
+      return { success: false, message: 'Semua kolom password wajib diisi.' };
+    }
+
+    if (cleanNew.length < 6) {
+      return { success: false, message: 'Password baru minimal 6 karakter.' };
+    }
+
+    const currentAcc = accounts.find((a) => a.id === currentUser.id);
+    if (!currentAcc || currentAcc.password !== cleanOld) {
+      return { success: false, message: 'Password lama yang Anda masukkan salah.' };
+    }
+
+    const now = new Date().toISOString().split('T')[0];
+
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.id === currentUser.id ? { ...acc, password: cleanNew, updatedAt: now } : acc
+      )
+    );
+
+    return { success: true, message: 'Password berhasil diubah. Gunakan password baru saat login berikutnya.' };
+  };
+
+  // Superadmin creates School and its Admin Account
+  const createSchoolWithAdmin = (
+    schoolData: Omit<SchoolEntity, 'id' | 'adminId' | 'adminUsername' | 'adminName' | 'createdAt'>,
+    adminData: { name: string; username: string; password: string; email: string; phone?: string }
+  ): { success: boolean; message: string } => {
+    const cleanUsername = adminData.username.trim().toLowerCase();
+    const cleanPass = adminData.password.trim();
+
+    if (!cleanUsername || !cleanPass || !adminData.name.trim()) {
+      return { success: false, message: 'Nama, username, dan password admin wajib diisi.' };
+    }
+
+    if (cleanPass.length < 6) {
+      return { success: false, message: 'Password admin minimal 6 karakter.' };
+    }
+
+    // Check username collision
+    if (accounts.some((a) => a.username.toLowerCase() === cleanUsername)) {
+      return { success: false, message: `Username admin "${cleanUsername}" sudah digunakan akun lain.` };
+    }
+
+    const schoolId = `sch-${Date.now().toString().slice(-4)}`;
+    const adminId = `usr-admin-${Date.now().toString().slice(-4)}`;
+    const today = new Date().toISOString().split('T')[0];
+
+    const newAdminAccount: UserAccount = {
+      id: adminId,
+      username: cleanUsername,
+      password: cleanPass,
+      name: adminData.name.trim(),
+      email: adminData.email.trim() || `${cleanUsername}@${schoolData.npsn}.sch.id`,
+      role: 'admin',
+      phone: adminData.phone?.trim() || schoolData.phone,
+      schoolId: schoolId,
+      schoolName: schoolData.name.trim(),
+      status: 'active',
+      createdAt: today,
+      updatedAt: today,
+    };
+
+    const newSchool: SchoolEntity = {
+      id: schoolId,
+      name: schoolData.name.trim(),
+      npsn: schoolData.npsn.trim(),
+      address: schoolData.address.trim(),
+      adminId: adminId,
+      adminUsername: cleanUsername,
+      adminName: adminData.name.trim(),
+      phone: schoolData.phone.trim(),
+      email: schoolData.email.trim(),
+      status: 'active',
+      createdAt: today,
+    };
+
+    setSchools((prev) => [newSchool, ...prev]);
+    setAccounts((prev) => [newAdminAccount, ...prev]);
+
+    return {
+      success: true,
+      message: `Sekolah "${newSchool.name}" dan akun admin (${cleanUsername}) berhasil dibuat!`,
+    };
+  };
+
+  // Admin / Superadmin creates user account
+  const createUserAccount = (
+    accountData: Omit<UserAccount, 'id' | 'createdAt' | 'updatedAt'>
+  ): { success: boolean; message: string } => {
+    const cleanUsername = accountData.username.trim().toLowerCase();
+    const cleanPass = accountData.password.trim();
+
+    if (!cleanUsername || !cleanPass || !accountData.name.trim()) {
+      return { success: false, message: 'Nama lengkap, username, dan password wajib diisi.' };
+    }
+
+    if (cleanPass.length < 5) {
+      return { success: false, message: 'Password minimal 5 karakter.' };
+    }
+
+    if (accounts.some((a) => a.username.toLowerCase() === cleanUsername)) {
+      return { success: false, message: `Username "${cleanUsername}" sudah digunakan.` };
+    }
+
+    const newId = `usr-${accountData.role}-${Date.now().toString().slice(-5)}`;
+    const today = new Date().toISOString().split('T')[0];
+
+    const newAccount: UserAccount = {
+      ...accountData,
+      id: newId,
+      username: cleanUsername,
+      password: cleanPass,
+      name: accountData.name.trim(),
+      email: accountData.email?.trim() || `${cleanUsername}@sekolah.sch.id`,
+      status: accountData.status || 'active',
+      createdAt: today,
+      updatedAt: today,
+    };
+
+    setAccounts((prev) => [newAccount, ...prev]);
+    return { success: true, message: `Akun ${accountData.role.toUpperCase()} untuk "${newAccount.name}" berhasil dibuat!` };
+  };
+
+  // Block or unblock account
+  const updateUserStatus = (userId: string, status: 'active' | 'blocked', reason?: string): { success: boolean; message: string } => {
+    const target = accounts.find((a) => a.id === userId);
+    if (!target) return { success: false, message: 'Akun tidak ditemukan.' };
+
+    if (target.role === 'superadmin') {
+      return { success: false, message: 'Akun Superadmin tidak dapat diblokir.' };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    setAccounts((prev) =>
+      prev.map((a) =>
+        a.id === userId
+          ? {
+              ...a,
+              status,
+              blockedReason: status === 'blocked' ? reason || 'Melanggar kebijakan aplikasi.' : undefined,
+              updatedAt: today,
+            }
+          : a
+      )
+    );
+
+    // If current logged-in user is blocked, force logout
+    if (currentUser && currentUser.id === userId && status === 'blocked') {
+      logout();
+    }
+
+    return {
+      success: true,
+      message: status === 'blocked' ? `Akun ${target.name} berhasil diblokir.` : `Akses akun ${target.name} berhasil diaktifkan kembali.`,
+    };
+  };
+
+  // Delete user account
+  const deleteUserAccount = (userId: string): { success: boolean; message: string } => {
+    const target = accounts.find((a) => a.id === userId);
+    if (!target) return { success: false, message: 'Akun tidak ditemukan.' };
+
+    if (target.role === 'superadmin') {
+      return { success: false, message: 'Akun Superadmin utama tidak dapat dihapus.' };
+    }
+
+    setAccounts((prev) => prev.filter((a) => a.id !== userId));
+
+    if (currentUser && currentUser.id === userId) {
+      logout();
+    }
+
+    return { success: true, message: `Akun "${target.name}" telah dihapus secara permanen.` };
+  };
+
+  // Reset password by admin / superadmin
+  const adminResetPassword = (userId: string, newPass: string): { success: boolean; message: string } => {
+    const cleanPass = newPass.trim();
+    if (!cleanPass || cleanPass.length < 5) {
+      return { success: false, message: 'Password baru minimal 5 karakter.' };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    setAccounts((prev) =>
+      prev.map((a) =>
+        a.id === userId ? { ...a, password: cleanPass, updatedAt: today } : a
+      )
+    );
+
+    return { success: true, message: 'Password akun berhasil direset.' };
   };
 
   const hasPermission = (permissionCode: string): boolean => {
@@ -110,10 +446,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!currentUser,
         selectedChildId,
         setSelectedChildId,
+        accounts,
+        schools,
         login,
-        quickLoginAsRole,
         logout,
         updateCurrentUserProfile,
+        changeSelfUsername,
+        changeSelfPassword,
+        createSchoolWithAdmin,
+        createUserAccount,
+        updateUserStatus,
+        deleteUserAccount,
+        adminResetPassword,
         hasPermission,
       }}
     >

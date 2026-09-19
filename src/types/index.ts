@@ -30,6 +30,7 @@ export type ModuleType =
   | 'finances'
   | 'calendar'
   | 'reports'
+  | 'schools'
   | 'user_management'
   | 'audit_logs'
   | 'settings'
@@ -44,10 +45,32 @@ export interface User {
   role: UserRole;
   avatar?: string;
   phone?: string;
+  schoolId?: string;
+  schoolName?: string;
+  status?: 'active' | 'blocked';
+  blockedReason?: string;
   linkedId?: string; // studentId for siswa/orangtua, teacherId for guru
   linkedStudentIds?: string[]; // for orangtua who have multiple children
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UserAccount extends User {
+  password: string; // Stored securely for local authentication & password updates
+}
+
+export interface SchoolEntity {
+  id: string;
+  name: string;
+  npsn: string;
+  address: string;
+  adminId: string;
+  adminUsername: string;
+  adminName: string;
+  phone: string;
+  email: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
 }
 
 export interface SchoolProfile {

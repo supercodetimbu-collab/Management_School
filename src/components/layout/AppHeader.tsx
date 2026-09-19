@@ -16,6 +16,7 @@ import {
   Calendar,
   Layers,
   Menu,
+  UserCog,
 } from 'lucide-react';
 import { UserRole } from '../../types';
 
@@ -32,23 +33,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSearch,
   onOpenMobileMenu,
 }) => {
-  const { currentUser, currentRole, quickLoginAsRole, logout } = useAuth();
+  const { currentUser, currentRole, logout } = useAuth();
   const { schoolProfile, activeAcademicYear, notifications, markNotificationAsRead, markAllNotificationsAsRead } = useSiakadData();
 
-  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-  const roleDropdownRef = useRef<HTMLDivElement>(null);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
-        setShowRoleDropdown(false);
-      }
       if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target as Node)) {
         setShowNotifDropdown(false);
       }
@@ -162,62 +158,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <PWAInstallButton variant="header" />
             </div>
 
-            {/* Quick Role Switcher Pill */}
-            <div className="relative flex-shrink-0" ref={roleDropdownRef}>
-              <button
-                onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                  roleLabels[currentRole]?.badgeColor || 'bg-slate-100 text-slate-700'
-                }`}
-                title="Ganti Mode / Akun Role Demo"
-              >
-                <span className="inline-block w-2 h-2 rounded-full bg-current flex-shrink-0"></span>
-                <span className="truncate max-w-[60px] sm:max-w-none">{roleLabels[currentRole]?.label || currentRole}</span>
-                <ChevronDown className="w-3 h-3 opacity-70 flex-shrink-0" />
-              </button>
-
-              {showRoleDropdown && (
-                <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                  <div className="px-3 py-1.5 border-b border-slate-100">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pilih Role Pengguna (Demo)</p>
-                    <p className="text-xs text-slate-500">Uji coba instan tanpa relogin</p>
-                  </div>
-                  <div className="py-1">
-                    {(Object.keys(roleLabels) as UserRole[]).map((r) => (
-                      <button
-                        key={r}
-                        onClick={() => {
-                          quickLoginAsRole(r);
-                          setShowRoleDropdown(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition ${
-                          currentRole === r ? 'bg-teal-50 text-teal-800 font-semibold' : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              r === 'superadmin'
-                                ? 'bg-purple-500'
-                                : r === 'admin'
-                                ? 'bg-teal-500'
-                                : r === 'guru'
-                                ? 'bg-blue-500'
-                                : r === 'siswa'
-                                ? 'bg-emerald-500'
-                                : r === 'orangtua'
-                                ? 'bg-amber-500'
-                                : 'bg-indigo-500'
-                            }`}
-                          />
-                          <span>{roleLabels[r].label}</span>
-                        </div>
-                        {currentRole === r && <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* Active User Role Badge */}
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border flex-shrink-0 ${
+                roleLabels[currentRole]?.badgeColor || 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              <span className="inline-block w-2 h-2 rounded-full bg-current flex-shrink-0"></span>
+              <span className="truncate max-w-[90px] sm:max-w-none">{roleLabels[currentRole]?.label || currentRole}</span>
             </div>
 
             {/* Notification Bell with Badge & Dropdown */}
@@ -335,27 +283,44 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         setCurrentModule('profile');
                         setShowUserDropdown(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition cursor-pointer"
                     >
                       <UserIcon className="w-4 h-4 text-slate-400" />
-                      <span>Profil Saya</span>
+                      <span>Profil & Akun Saya</span>
                     </button>
-                    <button
-                      onClick={() => {
-                        setCurrentModule('settings');
-                        setShowUserDropdown(false);
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"
-                    >
-                      <School className="w-4 h-4 text-slate-400" />
-                      <span>Pengaturan Sekolah</span>
-                    </button>
+
+                    {(currentRole === 'admin' || currentRole === 'superadmin') && (
+                      <button
+                        onClick={() => {
+                          setCurrentModule('user_management');
+                          setShowUserDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        <UserCog className="w-4 h-4 text-teal-600" />
+                        <span>{currentRole === 'superadmin' ? 'Pengawasan Akun Global' : 'Kelola Pengguna Sekolah'}</span>
+                      </button>
+                    )}
+
+                    {currentRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setCurrentModule('settings');
+                          setShowUserDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        <School className="w-4 h-4 text-slate-400" />
+                        <span>Pengaturan Sekolah</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => {
                         setCurrentModule('integration_docs');
                         setShowUserDropdown(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-teal-700 font-medium hover:bg-teal-50 transition"
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-teal-700 font-medium hover:bg-teal-50 transition cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4 text-teal-600" />
                       <span>Dokumentasi Sistem</span>

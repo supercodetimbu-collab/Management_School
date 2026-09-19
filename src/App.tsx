@@ -34,6 +34,8 @@ import { ReportCardsModule } from './components/modules/ReportCardsModule';
 import { FinancesModule } from './components/modules/FinancesModule';
 import { AnnouncementsModule } from './components/modules/AnnouncementsModule';
 import { SettingsModule } from './components/modules/SettingsModule';
+import { ProfileModule } from './components/modules/ProfileModule';
+import { UserManagementModule } from './components/modules/UserManagementModule';
 
 const MainAppContent: React.FC = () => {
   const { isAuthenticated, currentRole } = useAuth();
@@ -94,6 +96,11 @@ const MainAppContent: React.FC = () => {
         return <AnnouncementsModule />;
       case 'settings':
         return <SettingsModule />;
+      case 'profile':
+        return <ProfileModule />;
+      case 'user_management':
+      case 'schools':
+        return <UserManagementModule />;
       default:
         return renderDashboardByRole();
     }
