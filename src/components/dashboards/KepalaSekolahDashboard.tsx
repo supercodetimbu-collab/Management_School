@@ -14,6 +14,7 @@ import {
   Printer,
   ShieldCheck,
   AlertTriangle,
+  MessageSquare,
 } from 'lucide-react';
 
 interface KepalaSekolahDashboardProps {
@@ -48,13 +49,22 @@ export const KepalaSekolahDashboard: React.FC<KepalaSekolahDashboardProps> = ({
             </p>
           </div>
 
-          <button
-            onClick={() => setCurrentModule('reports')}
-            className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer flex-shrink-0"
-          >
-            <BarChart3 className="w-4 h-4 text-slate-950" />
-            <span>Laporan Eksekutif Lengkap</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+            <button
+              onClick={() => setCurrentModule('chat')}
+              className="px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer border border-white/20"
+            >
+              <MessageSquare className="w-4 h-4 text-emerald-300" />
+              <span>Ruang Obrolan Real-Time</span>
+            </button>
+            <button
+              onClick={() => setCurrentModule('reports')}
+              className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer"
+            >
+              <BarChart3 className="w-4 h-4 text-slate-950" />
+              <span>Laporan Eksekutif</span>
+            </button>
+          </div>
         </div>
       </div>
 

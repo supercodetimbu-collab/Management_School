@@ -24,6 +24,7 @@ import {
   HelpCircle,
   TrendingUp,
   User as UserIcon,
+  MessageSquare,
 } from 'lucide-react';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 
@@ -82,6 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         {
           title: 'INFORMASI & LAPORAN',
           items: [
+            { id: 'chat', label: 'Ruang Obrolan Real-Time', icon: MessageSquare },
             { id: 'announcements', label: 'Pengumuman', icon: Megaphone },
             { id: 'calendar', label: 'Kalender Akademik', icon: CalendarDays },
             { id: 'reports', label: 'Laporan Terpadu', icon: BarChart3 },
@@ -132,6 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         {
           title: 'INFORMASI & LAPORAN',
           items: [
+            { id: 'chat', label: 'Ruang Obrolan Real-Time', icon: MessageSquare },
             { id: 'announcements', label: 'Pengumuman', icon: Megaphone },
             { id: 'calendar', label: 'Kalender Akademik', icon: CalendarDays },
             { id: 'reports', label: 'Laporan Sekolah', icon: BarChart3 },
@@ -172,6 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         {
           title: 'INFORMASI & AKUN',
           items: [
+            { id: 'chat', label: 'Ruang Obrolan Real-Time', icon: MessageSquare },
             { id: 'announcements', label: 'Pengumuman Sekolah', icon: Megaphone },
             { id: 'calendar', label: 'Kalender Akademik', icon: CalendarDays },
             { id: 'profile', label: 'Profil & Akun Saya', icon: UserIcon },
@@ -197,6 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         {
           title: 'INFORMASI & AKUN',
           items: [
+            { id: 'chat', label: 'Ruang Obrolan Siswa', icon: MessageSquare },
             { id: 'announcements', label: 'Pengumuman', icon: Megaphone },
             { id: 'calendar', label: 'Kalender Akademik', icon: CalendarDays },
             { id: 'profile', label: 'Profil & Akun Saya', icon: UserIcon },
@@ -221,6 +226,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         {
           title: 'INFORMASI & AKUN',
           items: [
+            { id: 'chat', label: 'Ruang Obrolan Wali Murid', icon: MessageSquare },
             { id: 'announcements', label: 'Pengumuman Sekolah', icon: Megaphone },
             { id: 'calendar', label: 'Kalender Akademik', icon: CalendarDays },
             { id: 'profile', label: 'Profil & Akun Saya', icon: UserIcon },
@@ -235,6 +241,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         title: 'MONITORING EKSEKUTIF',
         items: [
           { id: 'dashboard', label: 'Dashboard Monitoring', icon: LayoutDashboard },
+          { id: 'chat', label: 'Ruang Obrolan Sekolah', icon: MessageSquare },
           { id: 'students', label: 'Monitoring Siswa', icon: GraduationCap },
           { id: 'teachers', label: 'Monitoring Guru', icon: Users },
           { id: 'attendance', label: 'Rekap Presensi', icon: ClipboardCheck },

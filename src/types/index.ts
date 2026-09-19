@@ -12,6 +12,7 @@ export type AnnouncementTarget = 'Semua' | 'Guru' | 'Siswa' | 'Orang Tua' | 'Kel
 
 export type ModuleType =
   | 'dashboard'
+  | 'chat'
   | 'students'
   | 'teachers'
   | 'parents'
@@ -76,6 +77,7 @@ export interface SchoolEntity {
 export interface SchoolProfile {
   name: string;
   npsn: string;
+  level?: string;
   subtitle: string;
   logo: string;
   address: string;
@@ -439,4 +441,49 @@ export interface SystemPermission {
   name: string;
   module: string;
   roles: UserRole[];
+}
+
+export interface ChatMessage {
+  id: string;
+  channelId: string;
+  channelName: string;
+  senderId: string;
+  senderName: string;
+  senderRole: UserRole;
+  senderSchoolName?: string;
+  content: string;
+  timestamp: string;
+  createdAt: number;
+}
+
+export interface ChatChannel {
+  id: string;
+  name: string;
+  description: string;
+  iconName: string;
+  allowedRoles: UserRole[];
+}
+
+export interface DatabaseBackupLog {
+  id: string;
+  timestamp: string;
+  type: 'firebase_snapshot' | 'google_drive_backup' | 'google_sheets_sync';
+  status: 'success' | 'failed' | 'in_progress';
+  size: string;
+  target: string;
+  initiator: string;
+}
+
+export interface DatabaseSystemConfig {
+  firebaseConnected: boolean;
+  firebaseProjectId: string;
+  firebaseDatabaseId: string;
+  googleDriveConnected: boolean;
+  googleDriveEmail: string;
+  googleDriveFolder: string;
+  googleSheetsBackupEnabled: boolean;
+  autoSyncEnabled: boolean;
+  syncIntervalMinutes: number;
+  lastSyncTimestamp: string;
+  backupLogs: DatabaseBackupLog[];
 }

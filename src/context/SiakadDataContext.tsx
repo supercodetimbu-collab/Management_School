@@ -25,6 +25,14 @@ import {
   PaymentBill,
 } from '../types';
 import {
+  subscribeToLiveUpdates,
+  broadcastUpdateToFirebase,
+  subscribeToRealtimeNotifications,
+  sendNotificationToFirebase,
+  isFirebaseReady,
+  SyncEventPayload,
+} from '../lib/firebase';
+import {
   INITIAL_SCHOOL_PROFILE,
   INITIAL_GRADE_WEIGHTS,
   INITIAL_ACADEMIC_YEARS,
@@ -144,6 +152,19 @@ interface SiakadDataContextType {
   exportFullDatabaseJSON: () => void;
   importFullDatabaseJSON: (jsonStr: string) => boolean;
   resetToDemoData: () => void;
+
+  isFirebaseConnected: boolean;
+  lastLiveEvent: SyncEventPayload | null;
+  liveSyncPulse: boolean;
+  latestLiveToast: NotificationItem | null;
+  clearLiveToast: () => void;
+  broadcastLiveAction: (
+    type: string,
+    module: string,
+    action: string,
+    details: string,
+    author?: { id: string; name: string; role: string }
+  ) => void;
 }
 
 const SiakadDataContext = createContext<SiakadDataContextType | undefined>(undefined);
@@ -151,6 +172,32 @@ const SiakadDataContext = createContext<SiakadDataContextType | undefined>(undef
 const STORAGE_KEY = 'siakad_master_database_v1';
 
 export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isFirebaseConnected] = useState<boolean>(isFirebaseReady);
+  const [lastLiveEvent, setLastLiveEvent] = useState<SyncEventPayload | null>(null);
+  const [liveSyncPulse, setLiveSyncPulse] = useState<boolean>(false);
+  const [latestLiveToast, setLatestLiveToast] = useState<NotificationItem | null>(null);
+
+  const clearLiveToast = () => setLatestLiveToast(null);
+
+  const broadcastLiveAction = (
+    type: string,
+    module: string,
+    action: string,
+    details: string,
+    author?: { id: string; name: string; role: string }
+  ) => {
+    broadcastUpdateToFirebase({
+      type,
+      module,
+      action,
+      details,
+      authorId: author?.id || 'admin',
+      authorName: author?.name || 'SIAKAD Official',
+      authorRole: author?.role || 'admin',
+      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+    });
+  };
+
   // Load state from localStorage or default to initial datasets
   const [data, setData] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -253,6 +300,37 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.error('Failed to sync SIAKAD database to localStorage', e);
     }
   }, [data]);
+
+  // Real-time Firebase Firestore Listeners
+  useEffect(() => {
+    const unsubNotifs = subscribeToRealtimeNotifications((remoteNotifs) => {
+      if (remoteNotifs && remoteNotifs.length > 0) {
+        setData((prev: any) => {
+          const existingIds = new Set(prev.notifications.map((n: NotificationItem) => n.id));
+          const fresh = remoteNotifs.filter((n) => !existingIds.has(n.id));
+          if (fresh.length > 0) {
+            setLatestLiveToast(fresh[0]);
+            return {
+              ...prev,
+              notifications: [...fresh, ...prev.notifications].slice(0, 100),
+            };
+          }
+          return prev;
+        });
+      }
+    });
+
+    const unsubUpdates = subscribeToLiveUpdates((event) => {
+      setLastLiveEvent(event);
+      setLiveSyncPulse(true);
+      setTimeout(() => setLiveSyncPulse(false), 2500);
+    });
+
+    return () => {
+      if (typeof unsubNotifs === 'function') unsubNotifs();
+      if (typeof unsubUpdates === 'function') unsubUpdates();
+    };
+  }, []);
 
   // Log action helper
   const logAction = (action: string, module: string, details: string, user: { id: string; name: string; role: any }) => {
@@ -772,6 +850,8 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       notifications: [newNotif, ...prev.notifications],
     }));
+    // Sync to Firestore for real-time delivery to all users
+    sendNotificationToFirebase(newNotif);
   };
 
   // Academic Calendar Events
@@ -1068,6 +1148,13 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         exportFullDatabaseJSON,
         importFullDatabaseJSON,
         resetToDemoData,
+
+        isFirebaseConnected,
+        lastLiveEvent,
+        liveSyncPulse,
+        latestLiveToast,
+        clearLiveToast,
+        broadcastLiveAction,
       }}
     >
       {children}

@@ -34,7 +34,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenMobileMenu,
 }) => {
   const { currentUser, currentRole, logout } = useAuth();
-  const { schoolProfile, activeAcademicYear, notifications, markNotificationAsRead, markAllNotificationsAsRead } = useSiakadData();
+  const {
+    schoolProfile,
+    activeAcademicYear,
+    notifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    liveSyncPulse,
+    isFirebaseConnected,
+  } = useSiakadData();
 
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -84,6 +92,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       case 'report_cards': return 'Raport Digital';
       case 'promotions_graduations': return 'Kenaikan & Kelulusan';
       case 'announcements': return 'Pengumuman';
+      case 'chat': return 'Ruang Obrolan Real-Time';
       case 'calendar': return 'Kalender Akademik';
       case 'reports': return 'Laporan Sekolah';
       case 'user_management': return 'Manajemen Pengguna';
@@ -156,6 +165,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             {/* PWA Install Button (Hidden in compact mobile header, available in sidebar/drawer) */}
             <div className="hidden sm:block flex-shrink-0">
               <PWAInstallButton variant="header" />
+            </div>
+
+            {/* Real-time Firebase Sync Status Indicator */}
+            <div
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold transition border ${
+                liveSyncPulse
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 ring-2 ring-emerald-400'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}
+              title="Koneksi real-time Firebase Firestore aktif & tersinkronisasi otomatis"
+            >
+              <span className={`w-2 h-2 rounded-full ${liveSyncPulse ? 'bg-emerald-600 scale-125' : 'bg-emerald-500'} animate-pulse`} />
+              <span className="hidden xl:inline font-bold">Firebase Live</span>
             </div>
 
             {/* Active User Role Badge */}

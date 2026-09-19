@@ -36,9 +36,13 @@ import { AnnouncementsModule } from './components/modules/AnnouncementsModule';
 import { SettingsModule } from './components/modules/SettingsModule';
 import { ProfileModule } from './components/modules/ProfileModule';
 import { UserManagementModule } from './components/modules/UserManagementModule';
+import { ChatModule } from './components/modules/ChatModule';
+import { LiveToastNotification } from './components/common/LiveToastNotification';
+import { useSiakadData } from './context/SiakadDataContext';
 
 const MainAppContent: React.FC = () => {
   const { isAuthenticated, currentRole } = useAuth();
+  const { latestLiveToast, clearLiveToast } = useSiakadData();
   const [currentModule, setCurrentModule] = useState<ModuleType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -94,6 +98,8 @@ const MainAppContent: React.FC = () => {
         return <FinancesModule />;
       case 'announcements':
         return <AnnouncementsModule />;
+      case 'chat':
+        return <ChatModule />;
       case 'settings':
         return <SettingsModule />;
       case 'profile':
@@ -108,6 +114,15 @@ const MainAppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50 flex flex-col antialiased selection:bg-teal-500 selection:text-white">
+      {/* Real-time Global Live Toast for Instant Notifications */}
+      <LiveToastNotification
+        notification={latestLiveToast}
+        onClose={clearLiveToast}
+        onAction={(mod) => {
+          if (mod) setCurrentModule(mod as ModuleType);
+        }}
+      />
+
       {/* Top Application Header */}
       <AppHeader
         currentModule={currentModule}

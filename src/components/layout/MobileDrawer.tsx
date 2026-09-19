@@ -25,6 +25,7 @@ import {
   LogOut,
   TrendingUp,
   User as UserIcon,
+  MessageSquare,
 } from 'lucide-react';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 import { UserRole } from '../../types';
@@ -281,6 +282,15 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             </p>
             <div className="space-y-0.5">
               <button
+                onClick={() => navigateTo('chat')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
+                  currentModule === 'chat' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Ruang Obrolan Real-Time</span>
+              </button>
+              <button
                 onClick={() => navigateTo('announcements')}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
                   currentModule === 'announcements' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
@@ -307,15 +317,17 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 <BarChart3 className="w-4 h-4" />
                 <span>Laporan Akademik</span>
               </button>
-              <button
-                onClick={() => navigateTo('settings')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
-                  currentModule === 'settings' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-                <span>Pengaturan Sekolah</span>
-              </button>
+              {(currentRole === 'admin' || currentRole === 'superadmin') && (
+                <button
+                  onClick={() => navigateTo('settings')}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
+                    currentModule === 'settings' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Pengaturan Sekolah & Sistem</span>
+                </button>
+              )}
               <button
                 onClick={() => navigateTo('integration_docs')}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
