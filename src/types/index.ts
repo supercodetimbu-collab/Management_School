@@ -381,7 +381,7 @@ export interface NotificationItem {
   message: string;
   time: string;
   timestamp: number;
-  category: 'tugas' | 'nilai' | 'pengumuman' | 'jadwal' | 'presensi' | 'raport' | 'sistem';
+  category: 'tugas' | 'nilai' | 'pengumuman' | 'jadwal' | 'presensi' | 'raport' | 'sistem' | 'keuangan';
   read: boolean;
   targetRole?: UserRole | 'all';
   targetUserId?: string;

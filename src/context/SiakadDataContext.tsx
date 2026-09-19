@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   SchoolProfile,
   Student,
@@ -23,6 +23,7 @@ import {
   GraduationRecord,
   AttendanceStatus,
   PaymentBill,
+  UserRole,
 } from '../types';
 import {
   subscribeToLiveUpdates,
@@ -180,7 +181,9 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [liveSyncPulse, setLiveSyncPulse] = useState<boolean>(false);
   const [latestLiveToast, setLatestLiveToast] = useState<NotificationItem | null>(null);
 
-  const clearLiveToast = () => setLatestLiveToast(null);
+  const clearLiveToast = useCallback(() => {
+    setLatestLiveToast(null);
+  }, []);
 
   const broadcastLiveAction = (
     type: string,
@@ -330,12 +333,12 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // 2. Synchronize Notifications across all dashboards
     const unsubNotifs = subscribeToRealtimeNotifications((remoteNotifs) => {
       if (remoteNotifs && remoteNotifs.length > 0) {
+        let firstFresh: NotificationItem | null = null;
         setData((prev: any) => {
           const existingIds = new Set(prev.notifications.map((n: NotificationItem) => n.id));
           const fresh = remoteNotifs.filter((n) => !existingIds.has(n.id));
           if (fresh.length > 0) {
-            // Trigger interactive live toast popup on all dashboards
-            setLatestLiveToast(fresh[0]);
+            firstFresh = fresh[0];
             return {
               ...prev,
               notifications: [...fresh, ...prev.notifications].slice(0, 100),
@@ -343,16 +346,69 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           }
           return prev;
         });
+        if (firstFresh) {
+          setLatestLiveToast(firstFresh);
+        }
       }
     });
 
-    // 3. Synchronize Live Data Mutations (Students, Grades, Attendance, Assignments)
+    // 3. Synchronize Live Data Mutations (Students, Grades, Attendance, Assignments, School Data)
     const unsubUpdates = subscribeToLiveUpdates((event) => {
       setLastLiveEvent(event);
       setLiveSyncPulse(true);
       setTimeout(() => setLiveSyncPulse(false), 2500);
 
-      // Instantly synchronize received remote mutations
+      // Instantly trigger interactive notification card on all screens for ANY remote event
+      if (event && event.details) {
+        const modLower = (event.module || '').toLowerCase();
+        const cat = modLower.includes('nilai')
+          ? 'nilai'
+          : modLower.includes('presensi')
+          ? 'presensi'
+          : modLower.includes('tugas')
+          ? 'tugas'
+          : modLower.includes('jadwal')
+          ? 'jadwal'
+          : modLower.includes('pengumuman')
+          ? 'pengumuman'
+          : modLower.includes('keuangan') || modLower.includes('spp') || modLower.includes('tagihan')
+          ? 'keuangan'
+          : 'sistem';
+
+        const link = modLower.includes('nilai')
+          ? 'grades'
+          : modLower.includes('presensi')
+          ? 'attendance'
+          : modLower.includes('tugas')
+          ? 'assignments'
+          : modLower.includes('jadwal')
+          ? 'schedules'
+          : modLower.includes('pengumuman')
+          ? 'announcements'
+          : modLower.includes('siswa') || modLower.includes('kesiswaan')
+          ? 'students'
+          : modLower.includes('guru') || modLower.includes('pendidik')
+          ? 'teachers'
+          : modLower.includes('rombel') || modLower.includes('kelas')
+          ? 'classes'
+          : modLower.includes('keuangan') || modLower.includes('spp')
+          ? 'finances'
+          : undefined;
+
+        setLatestLiveToast({
+          id: `live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          title: `${event.action || 'Pembaruan Terkini'}: ${event.module || 'SIAKAD'}`,
+          message: event.details,
+          time: event.timestamp || 'Baru saja',
+          timestamp: Date.now(),
+          category: cat as any,
+          read: false,
+          targetRole: 'all',
+          linkAction: link,
+        });
+      }
+
+      // Instantly synchronize received remote mutations into state
       if (event.type === 'ANNOUNCEMENT_CREATED' && event.dataSnapshot) {
         const anc = event.dataSnapshot;
         setData((prev: any) => {
@@ -420,6 +476,70 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, []);
 
+  // Global Real-time Notification Broadcaster for ALL System Changes
+  const notifyChange = ({
+    title,
+    message,
+    category,
+    targetRole = 'all',
+    linkAction,
+    type,
+    module,
+    action,
+    authorName = 'SIAKAD Real-Time',
+    authorRole = 'admin',
+    dataSnapshot,
+  }: {
+    title: string;
+    message: string;
+    category: 'presensi' | 'nilai' | 'pengumuman' | 'jadwal' | 'tugas' | 'keuangan' | 'sistem';
+    targetRole?: 'all' | UserRole;
+    linkAction?: string;
+    type: string;
+    module: string;
+    action: string;
+    authorName?: string;
+    authorRole?: string;
+    dataSnapshot?: any;
+  }) => {
+    const notifItem: NotificationItem = {
+      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title,
+      message,
+      time: 'Baru saja',
+      timestamp: Date.now(),
+      category: category as any,
+      read: false,
+      targetRole,
+      linkAction,
+    };
+
+    // 1. Immediately trigger the interactive floating notification card on caller's screen
+    setLatestLiveToast(notifItem);
+
+    // 2. Put into local notifications state
+    setData((prev: any) => ({
+      ...prev,
+      notifications: [notifItem, ...prev.notifications].slice(0, 100),
+    }));
+
+    // 3. Persist to Firestore collection `notifications` so ALL other users receive the card
+    sendNotificationToFirebase(notifItem);
+
+    // 4. Broadcast to `live_updates` for real-time live synchronization
+    broadcastUpdateToFirebase({
+      type,
+      module,
+      action,
+      details: message,
+      authorId: 'system',
+      authorName,
+      authorRole,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dataSnapshot,
+    });
+  };
+
   // Log action helper
   const logAction = (action: string, module: string, details: string, user: { id: string; name: string; role: any }) => {
     const now = new Date();
@@ -446,6 +566,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       schoolProfile: { ...prev.schoolProfile, ...profileUpdate },
     }));
+
+    notifyChange({
+      title: 'Profil Sekolah Diperbarui',
+      message: `Informasi data "${profileUpdate.name || 'Sekolah'}" telah berhasil diperbarui`,
+      category: 'sistem',
+      linkAction: 'settings',
+      type: 'SCHOOL_PROFILE_UPDATED',
+      module: 'Profil Sekolah',
+      action: 'Update Profil',
+      dataSnapshot: profileUpdate,
+    });
   };
 
   // Grade Weights
@@ -454,6 +585,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       gradeWeights: weights,
     }));
+
+    notifyChange({
+      title: 'Bobot Penilaian Diperbarui',
+      message: `Bobot akademik disesuaikan: Tugas ${weights.tugas}%, Ulangan ${weights.ulangan}%, UTS ${weights.uts}%, UAS ${weights.uas}%`,
+      category: 'nilai',
+      linkAction: 'grades',
+      type: 'GRADE_WEIGHTS_UPDATED',
+      module: 'Penilaian Akademik',
+      action: 'Ubah Bobot',
+      dataSnapshot: weights,
+    });
   };
 
   // Academic Years
@@ -467,6 +609,16 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         isActive: ay.id === id,
       })),
     }));
+
+    notifyChange({
+      title: 'Tahun Ajaran Aktif Berubah',
+      message: `Tahun akademik aktif telah disesuaikan oleh administrator`,
+      category: 'sistem',
+      linkAction: 'settings',
+      type: 'ACADEMIC_YEAR_CHANGED',
+      module: 'Tahun Akademik',
+      action: 'Ganti Tahun Ajaran',
+    });
   };
 
   const addAcademicYear = (year: Omit<AcademicYear, 'id'>) => {
@@ -478,6 +630,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       academicYears: [...prev.academicYears, newAy],
     }));
+
+    notifyChange({
+      title: `Tahun Ajaran Ditambahkan: ${newAy.name}`,
+      message: `Tahun ajaran ${newAy.name} Semester ${newAy.semester} berhasil didaftarkan`,
+      category: 'sistem',
+      linkAction: 'settings',
+      type: 'ACADEMIC_YEAR_ADDED',
+      module: 'Tahun Akademik',
+      action: 'Tambah Tahun Ajaran',
+      dataSnapshot: newAy,
+    });
   };
 
   // Classes
@@ -493,6 +656,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       classes: [...prev.classes, newClass],
     }));
+
+    notifyChange({
+      title: `Rombel Baru Dibuat: ${newClass.name}`,
+      message: `Kelas ${newClass.name} tingkat ${newClass.gradeLevel} telah terdaftar (Wali Kelas: ${newClass.waliKelasName})`,
+      category: 'sistem',
+      linkAction: 'classes',
+      type: 'CLASS_CREATED',
+      module: 'Rombongan Belajar',
+      action: 'Tambah Kelas',
+      dataSnapshot: newClass,
+    });
   };
 
   const updateClass = (id: string, cls: Partial<ClassRoom>) => {
@@ -501,6 +675,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       classes: prev.classes.map((c: ClassRoom) => (c.id === id ? { ...c, ...cls, updatedAt: now } : c)),
     }));
+
+    notifyChange({
+      title: `Data Rombel Diperbarui`,
+      message: `Data kelas ${cls.name || ''} telah diperbarui di seluruh dashboard`,
+      category: 'sistem',
+      linkAction: 'classes',
+      type: 'CLASS_UPDATED',
+      module: 'Rombongan Belajar',
+      action: 'Update Kelas',
+      dataSnapshot: { id, ...cls },
+    });
   };
 
   const deleteClass = (id: string) => {
@@ -508,6 +693,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       classes: prev.classes.filter((c: ClassRoom) => c.id !== id),
     }));
+
+    notifyChange({
+      title: 'Rombel Dihapus',
+      message: `Rombongan belajar telah dihapus dari sistem SIAKAD`,
+      category: 'sistem',
+      linkAction: 'classes',
+      type: 'CLASS_DELETED',
+      module: 'Rombongan Belajar',
+      action: 'Hapus Kelas',
+      dataSnapshot: { id },
+    });
   };
 
   // Subjects
@@ -523,6 +719,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       subjects: [...prev.subjects, newSubj],
     }));
+
+    notifyChange({
+      title: `Mata Pelajaran Baru: ${newSubj.name}`,
+      message: `Mapel ${newSubj.name} (${newSubj.code}) tingkat ${newSubj.gradeLevel} ditambahkan`,
+      category: 'sistem',
+      linkAction: 'subjects',
+      type: 'SUBJECT_ADDED',
+      module: 'Mata Pelajaran',
+      action: 'Tambah Mapel',
+      dataSnapshot: newSubj,
+    });
   };
 
   const updateSubject = (id: string, subj: Partial<Subject>) => {
@@ -531,6 +738,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       subjects: prev.subjects.map((s: Subject) => (s.id === id ? { ...s, ...subj, updatedAt: now } : s)),
     }));
+
+    notifyChange({
+      title: `Mapel Diperbarui: ${subj.name || ''}`,
+      message: `Informasi mata pelajaran telah diperbarui`,
+      category: 'sistem',
+      linkAction: 'subjects',
+      type: 'SUBJECT_UPDATED',
+      module: 'Mata Pelajaran',
+      action: 'Update Mapel',
+      dataSnapshot: { id, ...subj },
+    });
   };
 
   const deleteSubject = (id: string) => {
@@ -538,6 +756,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       subjects: prev.subjects.filter((s: Subject) => s.id !== id),
     }));
+
+    notifyChange({
+      title: 'Mata Pelajaran Dihapus',
+      message: `Mata pelajaran telah dihapus dari kurikulum sekolah`,
+      category: 'sistem',
+      linkAction: 'subjects',
+      type: 'SUBJECT_DELETED',
+      module: 'Mata Pelajaran',
+      action: 'Hapus Mapel',
+      dataSnapshot: { id },
+    });
   };
 
   // Teachers
@@ -553,6 +782,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       teachers: [...prev.teachers, newTeacher],
     }));
+
+    notifyChange({
+      title: `Guru Baru Terdaftar: ${newTeacher.name}`,
+      message: `Pendidik ${newTeacher.name} (NIP: ${newTeacher.nip}) resmi bergabung`,
+      category: 'sistem',
+      linkAction: 'teachers',
+      type: 'TEACHER_ADDED',
+      module: 'Tenaga Pendidik',
+      action: 'Tambah Guru',
+      dataSnapshot: newTeacher,
+    });
   };
 
   const updateTeacher = (id: string, tch: Partial<Teacher>) => {
@@ -561,6 +801,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       teachers: prev.teachers.map((t: Teacher) => (t.id === id ? { ...t, ...tch, updatedAt: now } : t)),
     }));
+
+    notifyChange({
+      title: `Profil Guru Diperbarui: ${tch.name || ''}`,
+      message: `Informasi biodata guru telah diperbarui di sistem`,
+      category: 'sistem',
+      linkAction: 'teachers',
+      type: 'TEACHER_UPDATED',
+      module: 'Tenaga Pendidik',
+      action: 'Update Guru',
+      dataSnapshot: { id, ...tch },
+    });
   };
 
   const deleteTeacher = (id: string) => {
@@ -568,6 +819,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       teachers: prev.teachers.filter((t: Teacher) => t.id !== id),
     }));
+
+    notifyChange({
+      title: 'Data Guru Dinonaktifkan',
+      message: `Data guru telah dihapus dari sistem SIAKAD`,
+      category: 'sistem',
+      linkAction: 'teachers',
+      type: 'TEACHER_DELETED',
+      module: 'Tenaga Pendidik',
+      action: 'Hapus Guru',
+      dataSnapshot: { id },
+    });
   };
 
   // Students
@@ -583,6 +845,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       students: [newStudent, ...prev.students],
     }));
+
+    notifyChange({
+      title: `Siswa Baru: ${newStudent.name}`,
+      message: `Peserta didik baru ${newStudent.name} (NISN: ${newStudent.nisn}) terdaftar di kelas ${newStudent.className}`,
+      category: 'sistem',
+      linkAction: 'students',
+      type: 'STUDENT_ADDED',
+      module: 'Kesiswaan',
+      action: 'Pendaftaran Siswa',
+      dataSnapshot: newStudent,
+    });
   };
 
   const updateStudent = (id: string, std: Partial<Student>) => {
@@ -591,6 +864,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       students: prev.students.map((s: Student) => (s.id === id ? { ...s, ...std, updatedAt: now } : s)),
     }));
+
+    notifyChange({
+      title: `Data Siswa Diperbarui: ${std.name || ''}`,
+      message: `Informasi siswa kelas ${std.className || ''} berhasil disinkronkan`,
+      category: 'sistem',
+      linkAction: 'students',
+      type: 'STUDENT_UPDATED',
+      module: 'Kesiswaan',
+      action: 'Update Siswa',
+      dataSnapshot: { id, ...std },
+    });
   };
 
   const deleteStudent = (id: string) => {
@@ -598,6 +882,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       students: prev.students.filter((s: Student) => s.id !== id),
     }));
+
+    notifyChange({
+      title: 'Data Siswa Dihapus',
+      message: `Data peserta didik telah dihapus dari sistem`,
+      category: 'sistem',
+      linkAction: 'students',
+      type: 'STUDENT_DELETED',
+      module: 'Kesiswaan',
+      action: 'Hapus Siswa',
+      dataSnapshot: { id },
+    });
   };
 
   const batchImportStudents = (newStudents: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>[]) => {
@@ -612,6 +907,16 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       students: [...mapped, ...prev.students],
     }));
+
+    notifyChange({
+      title: `Impor Massal Siswa Berhasil`,
+      message: `${mapped.length} data siswa berhasil diimpor dan disinkronkan ke seluruh sistem`,
+      category: 'sistem',
+      linkAction: 'students',
+      type: 'STUDENTS_BATCH_IMPORTED',
+      module: 'Kesiswaan',
+      action: 'Impor Siswa',
+    });
   };
 
   // Parents
@@ -695,6 +1000,18 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       schedules: [...prev.schedules, newSch],
     }));
+
+    notifyChange({
+      title: `Jadwal Pelajaran Baru: ${newSch.subjectName}`,
+      message: `${newSch.subjectName} (${newSch.className}) - ${newSch.day}, ${newSch.startTime}-${newSch.endTime} di ${newSch.room}`,
+      category: 'jadwal',
+      linkAction: 'schedules',
+      type: 'SCHEDULE_ADDED',
+      module: 'Jadwal Pelajaran',
+      action: 'Tambah Jadwal',
+      dataSnapshot: newSch,
+    });
+
     return { success: true };
   };
 
@@ -710,6 +1027,18 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       schedules: prev.schedules.map((s: Schedule) => (s.id === id ? merged : s)),
     }));
+
+    notifyChange({
+      title: `Jadwal Pelajaran Disesuaikan`,
+      message: `Jadwal ${merged.subjectName} (${merged.className}) hari ${merged.day} telah disesuaikan`,
+      category: 'jadwal',
+      linkAction: 'schedules',
+      type: 'SCHEDULE_UPDATED',
+      module: 'Jadwal Pelajaran',
+      action: 'Update Jadwal',
+      dataSnapshot: merged,
+    });
+
     return { success: true };
   };
 
@@ -718,6 +1047,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       schedules: prev.schedules.filter((s: Schedule) => s.id !== id),
     }));
+
+    notifyChange({
+      title: 'Jadwal Pelajaran Dihapus',
+      message: `Satu slot jadwal pelajaran telah dihapus dari agenda kelas`,
+      category: 'jadwal',
+      linkAction: 'schedules',
+      type: 'SCHEDULE_DELETED',
+      module: 'Jadwal Pelajaran',
+      action: 'Hapus Jadwal',
+      dataSnapshot: { id },
+    });
   };
 
   // Student Attendance
@@ -737,6 +1077,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         studentAttendance: [{ id: `att-${Date.now()}`, ...record }, ...prev.studentAttendance],
       };
     });
+
+    notifyChange({
+      title: `Presensi Siswa: ${record.studentName}`,
+      message: `Kehadiran ${record.studentName} (${record.className}): status [${record.status}] tanggal ${record.date}`,
+      category: 'presensi',
+      linkAction: 'attendance',
+      type: 'ATTENDANCE_RECORDED',
+      module: 'Presensi Siswa',
+      action: 'Catat Presensi',
+      dataSnapshot: record,
+    });
   };
 
   const batchRecordStudentAttendance = (records: Omit<StudentAttendanceRecord, 'id'>[]) => {
@@ -752,6 +1103,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
       return { ...prev, studentAttendance: updated };
     });
+
+    const first = records[0];
+    notifyChange({
+      title: `Presensi Kelas ${first ? first.className : ''} Disimpan`,
+      message: `Guru telah merekam presensi untuk ${records.length} siswa pada tanggal ${first ? first.date : ''}`,
+      category: 'presensi',
+      linkAction: 'attendance',
+      type: 'BATCH_ATTENDANCE_RECORDED',
+      module: 'Presensi Siswa',
+      action: 'Presensi Massal',
+    });
   };
 
   // Teacher Attendance
@@ -760,6 +1122,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       teacherAttendance: [{ id: `tatt-${Date.now()}`, ...record }, ...prev.teacherAttendance],
     }));
+
+    notifyChange({
+      title: `Presensi Guru Tercatat: ${record.teacherName}`,
+      message: `Bpk/Ibu ${record.teacherName} tercatat [${record.status}] pada ${record.date}`,
+      category: 'presensi',
+      linkAction: 'attendance',
+      type: 'TEACHER_ATTENDANCE_RECORDED',
+      module: 'Presensi Guru',
+      action: 'Presensi Guru',
+      dataSnapshot: record,
+    });
   };
 
   // Grades & Weights Calculation
@@ -811,16 +1184,14 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return { ...prev, grades: [enrichedGrade, ...prev.grades] };
     });
 
-    // Real-time sync to all devices
-    broadcastUpdateToFirebase({
+    notifyChange({
+      title: `Nilai Akademik Tersimpan`,
+      message: `Nilai akhir ${calc.score} (Predikat ${calc.predicate}) telah dicatat untuk siswa`,
+      category: 'nilai',
+      linkAction: 'grades',
       type: 'STUDENT_GRADE_SAVED',
-      module: 'Penilaian',
-      action: 'Simpan Nilai Siswa',
-      details: `Nilai akhir ${calc.score} (${calc.predicate}) diperbarui untuk siswa ID ${grade.studentId}`,
-      authorId: 'teacher',
-      authorName: 'Dewan Guru',
-      authorRole: 'guru',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      module: 'Penilaian Akademik',
+      action: 'Input Nilai Siswa',
       dataSnapshot: enrichedGrade,
     });
   };
@@ -837,29 +1208,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       assignments: [newAsg, ...prev.assignments],
     }));
 
-    // Broadcast live event
-    broadcastUpdateToFirebase({
+    notifyChange({
+      title: `Tugas Baru: ${newAsg.title}`,
+      message: `${newAsg.subjectName} - Kelas ${newAsg.className}. Tenggat: ${newAsg.dueDate}`,
+      category: 'tugas',
+      linkAction: 'assignments',
       type: 'ASSIGNMENT_CREATED',
       module: 'Tugas & E-Learning',
       action: 'Tugas Baru',
-      details: `Tugas "${newAsg.title}" untuk kelas ${newAsg.className} (Tenggat: ${newAsg.dueDate})`,
-      authorId: newAsg.teacherId,
       authorName: newAsg.teacherName,
       authorRole: 'guru',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       dataSnapshot: newAsg,
-    });
-
-    // Push notification to students
-    sendNotificationToFirebase({
-      title: `Tugas Baru: ${newAsg.title}`,
-      message: `${newAsg.subjectName} - Kelas ${newAsg.className}. Tenggat pengumpulan: ${newAsg.dueDate}`,
-      time: 'Baru saja',
-      timestamp: Date.now(),
-      category: 'tugas',
-      read: false,
-      targetRole: 'siswa',
-      linkAction: 'assignments',
     });
   };
 
@@ -868,6 +1227,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       assignments: prev.assignments.map((a: Assignment) => (a.id === id ? { ...a, ...asg } : a)),
     }));
+
+    notifyChange({
+      title: `Tugas Diperbarui: ${asg.title || ''}`,
+      message: `Informasi instruksi atau tenggat tugas telah diperbarui oleh guru`,
+      category: 'tugas',
+      linkAction: 'assignments',
+      type: 'ASSIGNMENT_UPDATED',
+      module: 'Tugas & E-Learning',
+      action: 'Update Tugas',
+      dataSnapshot: { id, ...asg },
+    });
   };
 
   const deleteAssignment = (id: string) => {
@@ -875,6 +1245,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       assignments: prev.assignments.filter((a: Assignment) => a.id !== id),
     }));
+
+    notifyChange({
+      title: 'Tugas Dihapus',
+      message: `Tugas e-learning telah dihapus oleh pengajar`,
+      category: 'tugas',
+      linkAction: 'assignments',
+      type: 'ASSIGNMENT_DELETED',
+      module: 'Tugas & E-Learning',
+      action: 'Hapus Tugas',
+      dataSnapshot: { id },
+    });
   };
 
   const submitAssignment = (subm: Omit<AssignmentSubmission, 'id' | 'submittedAt' | 'status'>) => {
@@ -898,6 +1279,18 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         submissions: [newSubm, ...prev.submissions],
       };
     });
+
+    const targetAsg = data.assignments.find((a: Assignment) => a.id === subm.assignmentId);
+    notifyChange({
+      title: `Tugas Diserahkan: ${newSubm.studentName}`,
+      message: `Siswa ${newSubm.studentName} telah mengumpulkan tugas "${targetAsg?.title || 'Tugas'}"`,
+      category: 'tugas',
+      linkAction: 'assignments',
+      type: 'ASSIGNMENT_SUBMITTED',
+      module: 'Tugas & E-Learning',
+      action: 'Serahkan Tugas',
+      dataSnapshot: newSubm,
+    });
   };
 
   const gradeSubmission = (submissionId: string, score: number, feedback: string) => {
@@ -907,6 +1300,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         s.id === submissionId ? { ...s, score, feedback, status: 'Dinilai' as const } : s
       ),
     }));
+
+    notifyChange({
+      title: 'Hasil Evaluasi Tugas',
+      message: `Guru telah memeriksa dan memberikan skor ${score} pada tugas yang dikumpulkan`,
+      category: 'nilai',
+      linkAction: 'assignments',
+      type: 'SUBMISSION_GRADED',
+      module: 'Tugas & E-Learning',
+      action: 'Koreksi Tugas',
+      dataSnapshot: { submissionId, score, feedback },
+    });
   };
 
   // Exams
@@ -919,6 +1323,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       exams: [...prev.exams, newExam],
     }));
+
+    notifyChange({
+      title: `Jadwal Ujian Diterbitkan: ${newExam.title}`,
+      message: `Ujian ${newExam.title} (${newExam.type}) - ${newExam.date} pukul ${newExam.startTime}-${newExam.endTime} di ${newExam.room}`,
+      category: 'jadwal',
+      linkAction: 'schedules',
+      type: 'EXAM_ADDED',
+      module: 'Ujian & Evaluasi',
+      action: 'Jadwal Ujian',
+      dataSnapshot: newExam,
+    });
   };
 
   const deleteExam = (id: string) => {
@@ -926,6 +1341,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       exams: prev.exams.filter((e: Exam) => e.id !== id),
     }));
+
+    notifyChange({
+      title: 'Jadwal Ujian Dibatalkan',
+      message: `Sesi ujian telah dibatalkan dari kalender akademik`,
+      category: 'jadwal',
+      linkAction: 'schedules',
+      type: 'EXAM_DELETED',
+      module: 'Ujian & Evaluasi',
+      action: 'Hapus Ujian',
+      dataSnapshot: { id },
+    });
   };
 
   // Announcements
@@ -1039,6 +1465,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       calendarEvents: [...prev.calendarEvents, newEvent],
     }));
+
+    notifyChange({
+      title: `Agenda Kalender Baru: ${newEvent.title}`,
+      message: `${newEvent.title} (${newEvent.type}) - ${newEvent.date}${newEvent.endDate ? ' s/d ' + newEvent.endDate : ''}`,
+      category: 'jadwal',
+      linkAction: 'dashboard',
+      type: 'CALENDAR_EVENT_ADDED',
+      module: 'Kalender Akademik',
+      action: 'Tambah Agenda',
+      dataSnapshot: newEvent,
+    });
   };
 
   // Class Promotions
@@ -1063,6 +1500,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         promotions: [newPromo, ...prev.promotions],
       };
     });
+
+    notifyChange({
+      title: `Kenaikan Kelas: ${promo.studentName}`,
+      message: `Status siswa ${promo.studentName}: ${promo.decision} ke kelas ${promo.toClassName}`,
+      category: 'sistem',
+      linkAction: 'students',
+      type: 'PROMOTION_RECORDED',
+      module: 'Kenaikan Kelas',
+      action: 'Proses Kenaikan',
+      dataSnapshot: newPromo,
+    });
   };
 
   // Graduations
@@ -1081,6 +1529,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         graduations: [newGrad, ...prev.graduations],
       };
     });
+
+    notifyChange({
+      title: `Kelulusan Siswa: ${grad.studentName}`,
+      message: `Siswa ${grad.studentName} resmi dinyatakan Lulus dengan No Ijazah ${grad.certificateNumber || '-'}`,
+      category: 'sistem',
+      linkAction: 'students',
+      type: 'GRADUATION_RECORDED',
+      module: 'Kelulusan Siswa',
+      action: 'Proses Kelulusan',
+      dataSnapshot: newGrad,
+    });
   };
 
   // Bills & Finance
@@ -1089,6 +1548,8 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     paymentMethod: 'Tunai' | 'Transfer Bank' | 'Virtual Account',
     notes?: string
   ) => {
+    let targetBill: PaymentBill | undefined;
+
     setData((prev: any) => ({
       ...prev,
       bills: (prev.bills || []).map((b: PaymentBill) => {
@@ -1097,7 +1558,7 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           const receipt = `KWT/${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${Math.floor(
             100 + Math.random() * 900
           )}`;
-          return {
+          targetBill = {
             ...b,
             status: 'Lunas' as const,
             paymentMethod,
@@ -1108,10 +1569,22 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             ).padStart(2, '0')}`,
             receiptNumber: receipt,
           };
+          return targetBill;
         }
         return b;
       }),
     }));
+
+    notifyChange({
+      title: 'Pembayaran Tagihan Lunas',
+      message: `Pembayaran ${targetBill ? targetBill.title : 'SPP'} (${paymentMethod}) telah diverifikasi lunas`,
+      category: 'keuangan',
+      linkAction: 'finances',
+      type: 'BILL_PAID',
+      module: 'Keuangan & SPP',
+      action: 'Bayar Tagihan',
+      dataSnapshot: { billId, paymentMethod },
+    });
   };
 
   const addBill = (bill: Omit<PaymentBill, 'id'>) => {
@@ -1123,6 +1596,17 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       bills: [newBill, ...(prev.bills || [])],
     }));
+
+    notifyChange({
+      title: `Tagihan Baru Diterbitkan: ${newBill.title}`,
+      message: `${newBill.type} sebesar Rp ${newBill.amount.toLocaleString('id-ID')} untuk ${newBill.studentName}`,
+      category: 'keuangan',
+      linkAction: 'finances',
+      type: 'BILL_CREATED',
+      module: 'Keuangan & SPP',
+      action: 'Buat Tagihan',
+      dataSnapshot: newBill,
+    });
   };
 
   // Backup & Restore
