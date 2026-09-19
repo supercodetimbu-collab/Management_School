@@ -206,39 +206,6 @@ export const SiswaDashboard: React.FC<SiswaDashboardProps> = ({ setCurrentModule
           </div>
         </div>
       </div>
-
-      {/* Announcements */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Megaphone className="w-4 h-4 text-teal-600" />
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Pengumuman Sekolah</h3>
-          </div>
-          <button
-            onClick={() => setCurrentModule('announcements')}
-            className="text-xs font-bold text-teal-700 hover:underline"
-          >
-            Lihat Semua
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          {announcements.slice(0, 2).map((a) => (
-            <div
-              key={a.id}
-              onClick={() => setCurrentModule('announcements')}
-              className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition cursor-pointer"
-            >
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-bold text-slate-600 uppercase">{a.category}</span>
-                <span className="text-[10px] text-slate-400">{a.publishedDate}</span>
-              </div>
-              <p className="text-xs font-bold text-slate-800">{a.title}</p>
-              <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{a.content}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
