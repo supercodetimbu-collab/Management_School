@@ -29,6 +29,9 @@ import {
   broadcastUpdateToFirebase,
   subscribeToRealtimeNotifications,
   sendNotificationToFirebase,
+  subscribeToRealtimeAnnouncements,
+  saveAnnouncementToFirebase,
+  deleteAnnouncementFromFirebase,
   isFirebaseReady,
   SyncEventPayload,
 } from '../lib/firebase';
@@ -303,12 +306,35 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Real-time Firebase Firestore Listeners
   useEffect(() => {
+    // 1. Synchronize Announcements across all users & devices
+    const unsubAnnouncements = subscribeToRealtimeAnnouncements((remoteAnnouncements) => {
+      if (remoteAnnouncements && remoteAnnouncements.length > 0) {
+        setData((prev: any) => {
+          const remoteMap = new Map(remoteAnnouncements.map((a) => [a.id, a]));
+          // Start with remote announcements
+          const merged = [...remoteAnnouncements];
+          // Keep existing local demo announcements if not replaced
+          prev.announcements.forEach((a: Announcement) => {
+            if (!remoteMap.has(a.id)) {
+              merged.push(a);
+            }
+          });
+          return {
+            ...prev,
+            announcements: merged,
+          };
+        });
+      }
+    });
+
+    // 2. Synchronize Notifications across all dashboards
     const unsubNotifs = subscribeToRealtimeNotifications((remoteNotifs) => {
       if (remoteNotifs && remoteNotifs.length > 0) {
         setData((prev: any) => {
           const existingIds = new Set(prev.notifications.map((n: NotificationItem) => n.id));
           const fresh = remoteNotifs.filter((n) => !existingIds.has(n.id));
           if (fresh.length > 0) {
+            // Trigger interactive live toast popup on all dashboards
             setLatestLiveToast(fresh[0]);
             return {
               ...prev,
@@ -320,13 +346,75 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     });
 
+    // 3. Synchronize Live Data Mutations (Students, Grades, Attendance, Assignments)
     const unsubUpdates = subscribeToLiveUpdates((event) => {
       setLastLiveEvent(event);
       setLiveSyncPulse(true);
       setTimeout(() => setLiveSyncPulse(false), 2500);
+
+      // Instantly synchronize received remote mutations
+      if (event.type === 'ANNOUNCEMENT_CREATED' && event.dataSnapshot) {
+        const anc = event.dataSnapshot;
+        setData((prev: any) => {
+          if (prev.announcements.some((a: Announcement) => a.id === anc.id)) {
+            return prev;
+          }
+          return {
+            ...prev,
+            announcements: [anc, ...prev.announcements],
+          };
+        });
+      } else if (event.type === 'ANNOUNCEMENT_DELETED' && event.dataSnapshot?.id) {
+        const deletedId = event.dataSnapshot.id;
+        setData((prev: any) => ({
+          ...prev,
+          announcements: prev.announcements.filter((a: Announcement) => a.id !== deletedId),
+        }));
+      } else if (event.type === 'STUDENT_GRADE_SAVED' && event.dataSnapshot) {
+        const g = event.dataSnapshot;
+        setData((prev: any) => {
+          const idx = prev.grades.findIndex(
+            (existing: StudentGrade) =>
+              existing.studentId === g.studentId &&
+              existing.subjectId === g.subjectId &&
+              existing.academicYear === g.academicYear &&
+              existing.semester === g.semester
+          );
+          if (idx >= 0) {
+            const copy = [...prev.grades];
+            copy[idx] = g;
+            return { ...prev, grades: copy };
+          }
+          return { ...prev, grades: [g, ...prev.grades] };
+        });
+      } else if (event.type === 'ATTENDANCE_RECORDED' && event.dataSnapshot) {
+        const rec = event.dataSnapshot;
+        setData((prev: any) => {
+          const idx = prev.studentAttendance.findIndex((a: any) => a.studentId === rec.studentId && a.date === rec.date);
+          if (idx >= 0) {
+            const copy = [...prev.studentAttendance];
+            copy[idx] = rec;
+            return { ...prev, studentAttendance: copy };
+          }
+          return { ...prev, studentAttendance: [rec, ...prev.studentAttendance] };
+        });
+      } else if (event.type === 'STUDENT_ADDED' && event.dataSnapshot) {
+        const std = event.dataSnapshot;
+        setData((prev: any) => {
+          if (prev.students.some((s: any) => s.id === std.id)) return prev;
+          return { ...prev, students: [std, ...prev.students] };
+        });
+      } else if (event.type === 'ASSIGNMENT_CREATED' && event.dataSnapshot) {
+        const asg = event.dataSnapshot;
+        setData((prev: any) => {
+          if (prev.assignments.some((a: any) => a.id === asg.id)) return prev;
+          return { ...prev, assignments: [asg, ...prev.assignments] };
+        });
+      }
     });
 
     return () => {
+      if (typeof unsubAnnouncements === 'function') unsubAnnouncements();
       if (typeof unsubNotifs === 'function') unsubNotifs();
       if (typeof unsubUpdates === 'function') unsubUpdates();
     };
@@ -722,6 +810,19 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
       return { ...prev, grades: [enrichedGrade, ...prev.grades] };
     });
+
+    // Real-time sync to all devices
+    broadcastUpdateToFirebase({
+      type: 'STUDENT_GRADE_SAVED',
+      module: 'Penilaian',
+      action: 'Simpan Nilai Siswa',
+      details: `Nilai akhir ${calc.score} (${calc.predicate}) diperbarui untuk siswa ID ${grade.studentId}`,
+      authorId: 'teacher',
+      authorName: 'Dewan Guru',
+      authorRole: 'guru',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dataSnapshot: enrichedGrade,
+    });
   };
 
   // Assignments & Submissions
@@ -735,6 +836,31 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       assignments: [newAsg, ...prev.assignments],
     }));
+
+    // Broadcast live event
+    broadcastUpdateToFirebase({
+      type: 'ASSIGNMENT_CREATED',
+      module: 'Tugas & E-Learning',
+      action: 'Tugas Baru',
+      details: `Tugas "${newAsg.title}" untuk kelas ${newAsg.className} (Tenggat: ${newAsg.dueDate})`,
+      authorId: newAsg.teacherId,
+      authorName: newAsg.teacherName,
+      authorRole: 'guru',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dataSnapshot: newAsg,
+    });
+
+    // Push notification to students
+    sendNotificationToFirebase({
+      title: `Tugas Baru: ${newAsg.title}`,
+      message: `${newAsg.subjectName} - Kelas ${newAsg.className}. Tenggat pengumpulan: ${newAsg.dueDate}`,
+      time: 'Baru saja',
+      timestamp: Date.now(),
+      category: 'tugas',
+      read: false,
+      targetRole: 'siswa',
+      linkAction: 'assignments',
+    });
   };
 
   const updateAssignment = (id: string, asg: Partial<Assignment>) => {
@@ -809,11 +935,44 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       id: `anc-${Date.now()}`,
       ...anc,
       publishedDate: now,
+      date: anc.date || now,
     };
+
+    // 1. Update local state immediately
     setData((prev: any) => ({
       ...prev,
-      announcements: [newAnc, ...prev.announcements],
+      announcements: [newAnc, ...prev.announcements.filter((a: Announcement) => a.id !== newAnc.id)],
     }));
+
+    // 2. Persist to Firebase Firestore
+    saveAnnouncementToFirebase(newAnc);
+
+    // 3. Broadcast real-time notification to all dashboards (Guru, Siswa, Orang Tua, Kepsek, Admin)
+    const notifItem: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      title: `Pengumuman Baru: ${newAnc.title}`,
+      message: newAnc.content.length > 120 ? `${newAnc.content.substring(0, 120)}...` : newAnc.content,
+      time: 'Baru saja',
+      timestamp: Date.now(),
+      category: 'pengumuman',
+      read: false,
+      targetRole: newAnc.target === 'ALL' ? 'all' : (newAnc.target.toLowerCase() as any),
+      linkAction: 'announcements',
+    };
+    sendNotificationToFirebase(notifItem);
+
+    // 4. Broadcast live sync event to all active devices
+    broadcastUpdateToFirebase({
+      type: 'ANNOUNCEMENT_CREATED',
+      module: 'Pengumuman',
+      action: 'Publikasi Pengumuman',
+      details: `Pengumuman baru: "${newAnc.title}" untuk sasaran ${newAnc.target}`,
+      authorId: 'admin',
+      authorName: newAnc.authorName || 'Administrator Sekolah',
+      authorRole: 'admin',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dataSnapshot: newAnc,
+    });
   };
 
   const deleteAnnouncement = (id: string) => {
@@ -821,6 +980,22 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...prev,
       announcements: prev.announcements.filter((a: Announcement) => a.id !== id),
     }));
+
+    // Remove from Firestore
+    deleteAnnouncementFromFirebase(id);
+
+    // Broadcast deletion
+    broadcastUpdateToFirebase({
+      type: 'ANNOUNCEMENT_DELETED',
+      module: 'Pengumuman',
+      action: 'Hapus Pengumuman',
+      details: `Pengumuman ID ${id} dihapus dari papan informasi`,
+      authorId: 'admin',
+      authorName: 'Administrator Sekolah',
+      authorRole: 'admin',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dataSnapshot: { id },
+    });
   };
 
   // Notifications

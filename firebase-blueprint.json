@@ -32,6 +32,22 @@
       },
       "required": ["title", "message", "timestamp", "category"]
     },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "School announcements broadcast across all users and dashboards in real-time",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "target": { "type": "string" },
+        "category": { "type": "string" },
+        "authorName": { "type": "string" },
+        "publishedDate": { "type": "string" },
+        "isImportant": { "type": "boolean" }
+      },
+      "required": ["title", "content", "target", "authorName", "publishedDate"]
+    },
     "ChatMessage": {
       "title": "ChatMessage",
       "description": "Real-time chat communication message",
@@ -64,6 +80,10 @@
     }
   },
   "firestore": {
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Real-time school announcements broadcast across all dashboards"
+    },
     "/live_updates/{updateId}": {
       "schema": "LiveUpdate",
       "description": "Collection of real-time state synchronization events"

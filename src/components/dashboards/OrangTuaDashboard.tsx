@@ -14,6 +14,8 @@ import {
   ChevronRight,
   TrendingUp,
   FileSignature,
+  Megaphone,
+  ArrowRight,
 } from 'lucide-react';
 
 interface OrangTuaDashboardProps {
@@ -22,12 +24,17 @@ interface OrangTuaDashboardProps {
 
 export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrentModule }) => {
   const { currentUser, selectedChildId, setSelectedChildId } = useAuth();
-  const { students, grades, studentAttendance, assignments, classes } = useSiakadData();
+  const { students, grades, studentAttendance, assignments, classes, announcements } = useSiakadData();
 
   // Find linked children
   const linkedStudentIds = currentUser?.linkedStudentIds || ['std-01', 'std-03'];
   const myChildren = students.filter((s) => linkedStudentIds.includes(s.id));
   const activeChild = myChildren.find((s) => s.id === selectedChildId) || myChildren[0] || students[0];
+
+  // Filter announcements for parents
+  const parentAnnouncements = announcements.filter(
+    (a) => a.target === 'ALL' || a.target === 'ORANG_TUA'
+  );
 
   // Child's grades
   const childGrades = grades.filter((g) => g.studentId === activeChild?.id);
@@ -235,6 +242,69 @@ export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrent
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Real-time Announcements from School */}
+      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+              <Megaphone className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800">Pengumuman & Edaran Sekolah untuk Orang Tua</h3>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Live Real-Time
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Informasi resmi dari pihak sekolah untuk orang tua / wali murid
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setCurrentModule('announcements')}
+            className="text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 self-start sm:self-auto"
+          >
+            <span>Semua Edaran</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {parentAnnouncements.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-xs">
+            Belum ada edaran baru untuk orang tua.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {parentAnnouncements.slice(0, 2).map((anc) => (
+              <div
+                key={anc.id}
+                onClick={() => setCurrentModule('announcements')}
+                className="p-3.5 rounded-2xl bg-slate-50 hover:bg-teal-50/50 border border-slate-100 transition cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">
+                      {anc.category}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {anc.publishedDate || anc.date}
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{anc.title}</h4>
+                  <p className="text-[11px] text-slate-600 line-clamp-2 mt-1">{anc.content}</p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500">
+                  <span>Oleh: <b className="text-slate-700">{anc.authorName}</b></span>
+                  <span className="text-teal-700 font-semibold">Baca Selengkapnya →</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

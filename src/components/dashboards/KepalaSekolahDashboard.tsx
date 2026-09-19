@@ -15,6 +15,8 @@ import {
   ShieldCheck,
   AlertTriangle,
   MessageSquare,
+  Megaphone,
+  ArrowRight,
 } from 'lucide-react';
 
 interface KepalaSekolahDashboardProps {
@@ -25,7 +27,7 @@ export const KepalaSekolahDashboard: React.FC<KepalaSekolahDashboardProps> = ({
   setCurrentModule,
 }) => {
   const { currentUser } = useAuth();
-  const { schoolProfile, students, teachers, classes, grades, activeAcademicYear } = useSiakadData();
+  const { schoolProfile, students, teachers, classes, grades, activeAcademicYear, announcements } = useSiakadData();
 
   const totalStudents = students.filter((s) => s.status === 'Aktif').length;
   const totalTeachers = teachers.filter((t) => t.status === 'Aktif').length;
@@ -143,6 +145,69 @@ export const KepalaSekolahDashboard: React.FC<KepalaSekolahDashboardProps> = ({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Real-time Announcements & Information Feed */}
+      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+              <Megaphone className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800">Pengumuman & Siaran Resmi Sekolah</h3>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Live Real-Time
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Informasi penting yang disiarkan kepada dewan guru, siswa, dan orang tua murid
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setCurrentModule('announcements')}
+            className="text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 self-start sm:self-auto"
+          >
+            <span>Kelola & Lihat Pengumuman</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {announcements.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-xs">
+            Belum ada siaran pengumuman aktif.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {announcements.slice(0, 3).map((anc) => (
+              <div
+                key={anc.id}
+                onClick={() => setCurrentModule('announcements')}
+                className="p-3.5 rounded-2xl bg-slate-50 hover:bg-teal-50/50 border border-slate-100 transition cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">
+                      {anc.category}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {anc.publishedDate || anc.date}
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{anc.title}</h4>
+                  <p className="text-[11px] text-slate-600 line-clamp-2 mt-1">{anc.content}</p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500">
+                  <span>Sasaran: <b className="text-slate-700">{anc.target}</b></span>
+                  <span className="text-teal-700 font-semibold">Lihat →</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

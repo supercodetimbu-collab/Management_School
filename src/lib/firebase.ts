@@ -6,6 +6,7 @@ import {
   doc,
   setDoc,
   addDoc,
+  deleteDoc,
   onSnapshot,
   query,
   orderBy,
@@ -14,7 +15,7 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { ChatMessage, NotificationItem, DatabaseBackupLog, DatabaseSystemConfig } from '../types';
+import { ChatMessage, NotificationItem, Announcement, DatabaseBackupLog, DatabaseSystemConfig } from '../types';
 
 let app: FirebaseApp;
 let db: Firestore | null = null;
@@ -22,13 +23,18 @@ let isFirebaseReady = false;
 
 try {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  // Support custom firestoreDatabaseId from firebase-applet-config.json
+  // Support custom firestoreDatabaseId from firebase-applet-config.json with fallback
   if (firebaseConfig.firestoreDatabaseId) {
-    db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+    try {
+      db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+    } catch (e) {
+      console.warn('[Firebase] Fallback to default firestore instance:', e);
+      db = getFirestore(app);
+    }
   } else {
     db = getFirestore(app);
   }
-  isFirebaseReady = true;
+  isFirebaseReady = !!db;
   console.log('[Firebase] Successfully connected to Firestore database:', firebaseConfig.firestoreDatabaseId || '(default)');
   
   if (db) {
@@ -68,9 +74,9 @@ export function subscribeToLiveUpdates(callback: (event: SyncEventPayload) => vo
   if (!db) return () => {};
   try {
     const q = query(
-      collection(db, 'siakad_live_updates'),
+      collection(db, 'live_updates'),
       orderBy('createdAt', 'desc'),
-      limit(25)
+      limit(50)
     );
     return onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
@@ -91,7 +97,7 @@ export function subscribeToLiveUpdates(callback: (event: SyncEventPayload) => vo
 export async function broadcastUpdateToFirebase(payload: Omit<SyncEventPayload, 'id'>) {
   if (!db) return;
   try {
-    await addDoc(collection(db, 'siakad_live_updates'), {
+    await addDoc(collection(db, 'live_updates'), {
       ...payload,
       createdAt: Date.now(),
     });
@@ -101,15 +107,79 @@ export async function broadcastUpdateToFirebase(payload: Omit<SyncEventPayload, 
 }
 
 // ----------------------------------------------------
-// 2. REAL-TIME NOTIFICATIONS (All Users / Dashboards)
+// 2. REAL-TIME ANNOUNCEMENTS (All Roles & Dashboards)
 // ----------------------------------------------------
-export function subscribeToRealtimeNotifications(callback: (notifications: NotificationItem[]) => void): Unsubscribe | (() => void) {
+export function subscribeToRealtimeAnnouncements(
+  callback: (announcements: Announcement[]) => void
+): Unsubscribe | (() => void) {
   if (!db) return () => {};
   try {
     const q = query(
-      collection(db, 'siakad_notifications'),
+      collection(db, 'announcements'),
       orderBy('createdAt', 'desc'),
-      limit(50)
+      limit(100)
+    );
+    return onSnapshot(q, (snapshot) => {
+      const list: Announcement[] = [];
+      snapshot.forEach((docSnap) => {
+        const d = docSnap.data();
+        list.push({
+          id: docSnap.id,
+          title: d.title || 'Pengumuman Sekolah',
+          content: d.content || '',
+          category: d.category || 'Umum',
+          target: d.target || 'ALL',
+          targetClassId: d.targetClassId,
+          authorName: d.authorName || 'Administrator',
+          publishedDate: d.publishedDate || d.date || new Date().toISOString().split('T')[0],
+          date: d.date || d.publishedDate || new Date().toISOString().split('T')[0],
+          isImportant: d.isImportant ?? false,
+        });
+      });
+      callback(list);
+    }, (err) => {
+      console.warn('[Firestore] Announcements listener error:', err);
+    });
+  } catch (err) {
+    console.warn('[Firestore] Failed to subscribe to announcements:', err);
+    return () => {};
+  }
+}
+
+export async function saveAnnouncementToFirebase(anc: Announcement): Promise<void> {
+  if (!db) return;
+  try {
+    await setDoc(doc(db, 'announcements', anc.id), {
+      ...anc,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  } catch (err) {
+    console.warn('[Firestore] Failed to save announcement to Firebase:', err);
+  }
+}
+
+export async function deleteAnnouncementFromFirebase(id: string): Promise<void> {
+  if (!db) return;
+  try {
+    await deleteDoc(doc(db, 'announcements', id));
+  } catch (err) {
+    console.warn('[Firestore] Failed to delete announcement from Firebase:', err);
+  }
+}
+
+// ----------------------------------------------------
+// 3. REAL-TIME NOTIFICATIONS (All Users / Dashboards)
+// ----------------------------------------------------
+export function subscribeToRealtimeNotifications(
+  callback: (notifications: NotificationItem[]) => void
+): Unsubscribe | (() => void) {
+  if (!db) return () => {};
+  try {
+    const q = query(
+      collection(db, 'notifications'),
+      orderBy('createdAt', 'desc'),
+      limit(60)
     );
     return onSnapshot(q, (snapshot) => {
       const list: NotificationItem[] = [];
@@ -138,11 +208,13 @@ export function subscribeToRealtimeNotifications(callback: (notifications: Notif
   }
 }
 
-export async function sendNotificationToFirebase(notif: Omit<NotificationItem, 'id'>) {
+export async function sendNotificationToFirebase(notif: NotificationItem | Omit<NotificationItem, 'id'>) {
   if (!db) return;
   try {
-    await addDoc(collection(db, 'siakad_notifications'), {
+    const docId = 'id' in notif && notif.id ? notif.id : `notif-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    await setDoc(doc(db, 'notifications', docId), {
       ...notif,
+      id: docId,
       createdAt: Date.now(),
     });
   } catch (err) {
@@ -151,7 +223,7 @@ export async function sendNotificationToFirebase(notif: Omit<NotificationItem, '
 }
 
 // ----------------------------------------------------
-// 3. REAL-TIME CHAT ROOM (All Roles)
+// 4. REAL-TIME CHAT ROOM (All Roles)
 // ----------------------------------------------------
 export function subscribeToRealtimeChat(
   channelId: string,
@@ -160,9 +232,9 @@ export function subscribeToRealtimeChat(
   if (!db) return () => {};
   try {
     const q = query(
-      collection(db, 'siakad_chat_messages'),
+      collection(db, 'chat_messages'),
       orderBy('createdAt', 'asc'),
-      limit(100)
+      limit(150)
     );
     return onSnapshot(q, (snapshot) => {
       const messages: ChatMessage[] = [];
@@ -196,7 +268,7 @@ export function subscribeToRealtimeChat(
 export async function sendChatMessageToFirebase(msg: Omit<ChatMessage, 'id' | 'createdAt'>) {
   if (!db) return;
   try {
-    await addDoc(collection(db, 'siakad_chat_messages'), {
+    await addDoc(collection(db, 'chat_messages'), {
       ...msg,
       createdAt: Date.now(),
     });
@@ -206,7 +278,7 @@ export async function sendChatMessageToFirebase(msg: Omit<ChatMessage, 'id' | 'c
 }
 
 // ----------------------------------------------------
-// 4. DATABASE & GOOGLE DRIVE / SHEETS CONFIG (Superadmin)
+// 5. DATABASE & GOOGLE DRIVE / SHEETS CONFIG (Superadmin)
 // ----------------------------------------------------
 const CONFIG_DOC_PATH = 'system_config';
 const CONFIG_DOC_ID = 'global_database_settings';
