@@ -11,6 +11,7 @@ import {
   orderBy,
   limit,
   Unsubscribe,
+  getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { ChatMessage, NotificationItem, DatabaseBackupLog, DatabaseSystemConfig } from '../types';
@@ -29,6 +30,18 @@ try {
   }
   isFirebaseReady = true;
   console.log('[Firebase] Successfully connected to Firestore database:', firebaseConfig.firestoreDatabaseId || '(default)');
+  
+  if (db) {
+    getDocFromServer(doc(db, 'test', 'connection'))
+      .then(() => {
+        console.log('[Firebase] Connection to Firestore server verified.');
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.message.includes('the client is offline')) {
+          console.warn('[Firebase] Firestore client is offline or network is reconnecting.');
+        }
+      });
+  }
 } catch (error) {
   console.warn('[Firebase] Initialization notice:', error);
 }
