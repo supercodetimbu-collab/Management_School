@@ -258,28 +258,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
   const sections = getSections();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border border-slate-200 rounded-3xl sticky top-[5.25rem] h-[calc(100vh-6.25rem)] flex-shrink-0 shadow-2xs overflow-hidden z-10">
+    <aside className="hidden md:flex flex-col w-72 lg:w-76 xl:w-80 bg-white border border-slate-200 rounded-3xl sticky top-[5.25rem] h-[calc(100vh-6.25rem)] flex-shrink-0 shadow-xs overflow-hidden z-10">
       {/* Brand Header In Sidebar - Pinned at top */}
-      <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-white flex-shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-bold shadow-2xs flex-shrink-0">
-          <School className="w-5 h-5" />
+      <div className="p-4.5 border-b border-slate-100 flex items-center gap-3.5 bg-white flex-shrink-0">
+        <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-bold shadow-xs flex-shrink-0">
+          <School className="w-5.5 h-5.5" />
         </div>
-        <div className="overflow-hidden">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider truncate">
+        <div className="overflow-hidden min-w-0">
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight truncate leading-tight">
             {schoolProfile.name}
           </h2>
-          <p className="text-[11px] text-teal-600 font-medium">NPSN: {schoolProfile.npsn}</p>
+          <p className="text-xs text-teal-600 font-semibold mt-0.5">NPSN: {schoolProfile.npsn}</p>
         </div>
       </div>
 
       {/* Navigation Sections - Independent Dedicated Scroll Area */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 overscroll-contain sidebar-scroll scroll-smooth">
+      <div className="flex-1 overflow-y-auto px-3.5 py-4.5 space-y-6 overscroll-contain sidebar-scroll scroll-smooth">
         {sections.map((section, idx) => (
           <div key={idx}>
-            <p className="px-3 text-[10px] font-bold text-slate-400 tracking-wider mb-1.5 uppercase">
+            <p className="px-3.5 text-[11px] font-bold text-slate-400 tracking-wider mb-2 uppercase">
               {section.title}
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentModule === item.id;
@@ -287,18 +287,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
                   <button
                     key={item.id}
                     onClick={() => setCurrentModule(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] sm:text-sm font-semibold transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-teal-600 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-teal-700 hover:bg-teal-50/60'
+                        ? 'bg-teal-600 text-white shadow-xs font-bold'
+                        : 'text-slate-600 hover:text-teal-700 hover:bg-teal-50/70'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className={`w-4.5 h-4.5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span className="truncate">{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500 text-white">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500 text-white flex-shrink-0 ml-2">
                         {item.badge}
                       </span>
                     )}
@@ -311,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
       </div>
 
       {/* PWA Promo Card in Desktop Sidebar - Pinned at bottom */}
-      <div className="p-3 border-t border-slate-100 bg-white flex-shrink-0">
+      <div className="p-3.5 border-t border-slate-100 bg-white flex-shrink-0">
         <PWAInstallButton variant="sidebar" />
       </div>
     </aside>
