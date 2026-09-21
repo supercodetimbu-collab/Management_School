@@ -1,5 +1,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
 import {
+  initializeFirestore,
   getFirestore,
   Firestore,
   collection,
@@ -19,40 +21,107 @@ import { ChatMessage, NotificationItem, Announcement, DatabaseBackupLog, Databas
 
 let app: FirebaseApp;
 let db: Firestore | null = null;
+let auth: Auth | null = null;
 let isFirebaseReady = false;
 
 try {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  // Support custom firestoreDatabaseId from firebase-applet-config.json with fallback
+  try {
+    auth = getAuth(app);
+  } catch {
+    // Auth optional
+  }
+
+  // Support custom firestoreDatabaseId from firebase-applet-config.json with long-polling fallback for iframe environments
+  const firestoreSettings = {
+    experimentalAutoDetectLongPolling: true,
+  };
+
   if (firebaseConfig.firestoreDatabaseId) {
     try {
-      db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-    } catch (e) {
-      console.warn('[Firebase] Fallback to default firestore instance:', e);
-      db = getFirestore(app);
+      db = initializeFirestore(app, firestoreSettings, firebaseConfig.firestoreDatabaseId);
+    } catch {
+      try {
+        db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+      } catch (e) {
+        console.warn('[Firebase] Fallback to default firestore instance:', e);
+        db = getFirestore(app);
+      }
     }
   } else {
-    db = getFirestore(app);
+    try {
+      db = initializeFirestore(app, firestoreSettings);
+    } catch {
+      db = getFirestore(app);
+    }
   }
   isFirebaseReady = !!db;
-  console.log('[Firebase] Successfully connected to Firestore database:', firebaseConfig.firestoreDatabaseId || '(default)');
+  console.log('[Firebase] Initialized Firestore database:', firebaseConfig.firestoreDatabaseId || '(default)');
   
-  if (db) {
-    getDocFromServer(doc(db, 'test', 'connection'))
-      .then(() => {
-        console.log('[Firebase] Connection to Firestore server verified.');
-      })
-      .catch((error) => {
-        if (error instanceof Error && error.message.includes('the client is offline')) {
-          console.warn('[Firebase] Firestore client is offline or network is reconnecting.');
-        }
-      });
+  // Connection validation per Firebase Skill guidelines
+  async function testConnection() {
+    if (!db) return;
+    try {
+      await getDocFromServer(doc(db, 'test', 'connection'));
+      console.log('[Firebase] Connection to Firestore server verified.');
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('the client is offline')) {
+        console.warn('[Firebase] Firestore client is offline or network is reconnecting.');
+      }
+    }
   }
+  testConnection();
 } catch (error) {
   console.warn('[Firebase] Initialization notice:', error);
 }
 
-export { app, db, isFirebaseReady, firebaseConfig };
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth?.currentUser?.uid,
+      email: auth?.currentUser?.email,
+      emailVerified: auth?.currentUser?.emailVerified,
+      isAnonymous: auth?.currentUser?.isAnonymous,
+      tenantId: auth?.currentUser?.tenantId,
+      providerInfo: auth?.currentUser?.providerData?.map((provider) => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || [],
+    },
+    operationType,
+    path,
+  };
+  console.warn('Firestore Operation Notice: ', JSON.stringify(errInfo));
+}
+
+export { app, db, auth, isFirebaseReady, firebaseConfig };
 
 // ----------------------------------------------------
 // 1. REAL-TIME DATA SYNC (Admin, Kepsek, Guru updates)
