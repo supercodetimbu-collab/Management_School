@@ -264,6 +264,15 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   <span>Mata Pelajaran</span>
                 </button>
                 <button
+                  onClick={() => navigateTo('academic_year')}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
+                    currentModule === 'academic_year' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
+                  }`}
+                >
+                  <CalendarDays className="w-4 h-4" />
+                  <span>Tahun Ajaran</span>
+                </button>
+                <button
                   onClick={() => navigateTo('promotions_graduations')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
                     currentModule === 'promotions_graduations' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'

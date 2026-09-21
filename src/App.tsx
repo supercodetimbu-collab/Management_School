@@ -30,6 +30,8 @@ import { SchedulesModule } from './components/modules/SchedulesModule';
 import { AttendanceModule } from './components/modules/AttendanceModule';
 import { GradesModule } from './components/modules/GradesModule';
 import { AssignmentsModule } from './components/modules/AssignmentsModule';
+import { ExamsModule } from './components/modules/ExamsModule';
+import { AcademicYearModule } from './components/modules/AcademicYearModule';
 import { ReportCardsModule } from './components/modules/ReportCardsModule';
 import { FinancesModule } from './components/modules/FinancesModule';
 import { AnnouncementsModule } from './components/modules/AnnouncementsModule';
@@ -85,6 +87,9 @@ const MainAppContent: React.FC = () => {
         return <ClassesModule />;
       case 'subjects':
         return <SubjectsModule />;
+      case 'academic_year':
+      case 'calendar':
+        return <AcademicYearModule />;
       case 'schedules':
         return <SchedulesModule />;
       case 'attendance':
@@ -93,9 +98,12 @@ const MainAppContent: React.FC = () => {
         return <GradesModule />;
       case 'assignments':
         return <AssignmentsModule />;
+      case 'exams':
+        return <ExamsModule />;
       case 'report_cards':
         return <ReportCardsModule />;
       case 'finances':
+      case 'finance':
         return <FinancesModule />;
       case 'announcements':
         return <AnnouncementsModule />;

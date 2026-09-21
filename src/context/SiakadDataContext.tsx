@@ -70,6 +70,8 @@ interface SiakadDataContextType {
   activeAcademicYear: AcademicYear;
   setActiveAcademicYear: (id: string) => void;
   addAcademicYear: (year: Omit<AcademicYear, 'id'>) => void;
+  updateAcademicYear: (id: string, year: Partial<Omit<AcademicYear, 'id'>>) => void;
+  deleteAcademicYear: (id: string) => void;
 
   classes: ClassRoom[];
   addClass: (cls: Omit<ClassRoom, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -125,6 +127,7 @@ interface SiakadDataContextType {
 
   exams: Exam[];
   addExam: (exam: Omit<Exam, 'id'>) => void;
+  updateExam: (id: string, exam: Partial<Omit<Exam, 'id'>>) => void;
   deleteExam: (id: string) => void;
 
   announcements: Announcement[];
@@ -710,6 +713,51 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       module: 'Tahun Akademik',
       action: 'Tambah Tahun Ajaran',
       dataSnapshot: newAy,
+    });
+  };
+
+  const updateAcademicYear = (id: string, updated: Partial<Omit<AcademicYear, 'id'>>) => {
+    setData((prev: any) => ({
+      ...prev,
+      academicYears: prev.academicYears.map((ay: AcademicYear) =>
+        ay.id === id ? { ...ay, ...updated } : ay
+      ),
+    }));
+
+    notifyChange({
+      title: 'Tahun Ajaran Diperbarui',
+      message: `Informasi tahun ajaran telah diperbarui`,
+      category: 'sistem',
+      linkAction: 'academic_year',
+      type: 'ACADEMIC_YEAR_UPDATED',
+      module: 'Tahun Akademik',
+      action: 'Perbarui Tahun Ajaran',
+      dataSnapshot: { id, ...updated },
+    });
+  };
+
+  const deleteAcademicYear = (id: string) => {
+    setData((prev: any) => {
+      const remaining = prev.academicYears.filter((ay: AcademicYear) => ay.id !== id);
+      const hasActive = remaining.some((ay: AcademicYear) => ay.isActive);
+      if (!hasActive && remaining.length > 0) {
+        remaining[0].isActive = true;
+      }
+      return {
+        ...prev,
+        academicYears: remaining,
+      };
+    });
+
+    notifyChange({
+      title: 'Tahun Ajaran Dihapus',
+      message: `Tahun ajaran telah dihapus dari sistem`,
+      category: 'sistem',
+      linkAction: 'academic_year',
+      type: 'ACADEMIC_YEAR_DELETED',
+      module: 'Tahun Akademik',
+      action: 'Hapus Tahun Ajaran',
+      dataSnapshot: { id },
     });
   };
 
@@ -1406,6 +1454,26 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
+  const updateExam = (id: string, updated: Partial<Omit<Exam, 'id'>>) => {
+    setData((prev: any) => ({
+      ...prev,
+      exams: prev.exams.map((e: Exam) =>
+        e.id === id ? { ...e, ...updated } : e
+      ),
+    }));
+
+    notifyChange({
+      title: 'Jadwal Ujian Diperbarui',
+      message: `Informasi dan jadwal sesi ujian telah diperbarui`,
+      category: 'jadwal',
+      linkAction: 'exams',
+      type: 'EXAM_UPDATED',
+      module: 'Ujian & Evaluasi',
+      action: 'Perbarui Ujian',
+      dataSnapshot: { id, ...updated },
+    });
+  };
+
   const deleteExam = (id: string) => {
     setData((prev: any) => ({
       ...prev,
@@ -1825,6 +1893,8 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         activeAcademicYear,
         setActiveAcademicYear,
         addAcademicYear,
+        updateAcademicYear,
+        deleteAcademicYear,
 
         classes: data.classes,
         addClass,
@@ -1880,6 +1950,7 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         exams: data.exams,
         addExam,
+        updateExam,
         deleteExam,
 
         announcements: data.announcements,
