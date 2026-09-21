@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   X,
   Plus,
+  RefreshCw,
 } from 'lucide-react';
 
 export const UserManagementModule: React.FC = () => {
@@ -35,6 +36,7 @@ export const UserManagementModule: React.FC = () => {
     updateUserStatus,
     deleteUserAccount,
     adminResetPassword,
+    refreshAccounts,
   } = useAuth();
 
   const isSuperAdmin = currentRole === 'superadmin';
@@ -53,6 +55,18 @@ export const UserManagementModule: React.FC = () => {
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ type, text });
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Refresh data handler
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    refreshAccounts();
+    setTimeout(() => {
+      setIsRefreshing(false);
+      showToast('Data semua pengguna berhasil diperbarui.', 'success');
+    }, 500);
   };
 
   // Modals
@@ -287,6 +301,21 @@ export const UserManagementModule: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Segarkan data pengguna dan sistem"
+            className={`px-3.5 py-2.5 rounded-xl text-xs font-bold border transition flex items-center gap-2 shadow-xs cursor-pointer ${
+              isRefreshing
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-300 active:scale-95'
+            }`}
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-teal-600' : 'text-slate-500'}`} />
+            <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Data'}</span>
+          </button>
+
           {isSuperAdmin && (
             <button
               onClick={() => setShowAddSchoolModal(true)}
@@ -424,6 +453,21 @@ export const UserManagementModule: React.FC = () => {
                 <option value="active">Aktif</option>
                 <option value="blocked">Diblokir</option>
               </select>
+
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                title="Segarkan daftar semua pengguna"
+                className={`px-3 py-2 text-xs font-bold rounded-xl border transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                  isRefreshing
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-300 shadow-xs active:scale-95'
+                }`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-teal-600' : 'text-slate-500'}`} />
+                <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh'}</span>
+              </button>
             </div>
           </div>
 

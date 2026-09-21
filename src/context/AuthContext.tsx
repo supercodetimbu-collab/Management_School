@@ -25,6 +25,7 @@ interface AuthContextType {
   updateUserStatus: (userId: string, status: 'active' | 'blocked', reason?: string) => { success: boolean; message: string };
   deleteUserAccount: (userId: string) => { success: boolean; message: string };
   adminResetPassword: (userId: string, newPass: string) => { success: boolean; message: string };
+  refreshAccounts: () => void;
   hasPermission: (permissionCode: string) => boolean;
 }
 
@@ -428,6 +429,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true, message: 'Password akun berhasil direset.' };
   };
 
+  const refreshAccounts = () => {
+    const savedAccounts = localStorage.getItem('siakad_system_accounts');
+    if (savedAccounts) {
+      try {
+        const parsed: UserAccount[] = JSON.parse(savedAccounts);
+        const hasTimbu = parsed.some((a) => a.username.toLowerCase() === 'tn.timbu');
+        if (!hasTimbu) {
+          const defaultSuper = INITIAL_SYSTEM_ACCOUNTS.find((a) => a.username === 'tn.timbu');
+          if (defaultSuper) parsed.unshift(defaultSuper);
+        }
+        setAccounts(parsed);
+      } catch (e) {
+        console.error('Failed to parse saved accounts on refresh', e);
+      }
+    } else {
+      setAccounts(INITIAL_SYSTEM_ACCOUNTS);
+    }
+
+    const savedSchools = localStorage.getItem('siakad_system_schools');
+    if (savedSchools) {
+      try {
+        setSchools(JSON.parse(savedSchools));
+      } catch (e) {
+        console.error('Failed to parse saved schools on refresh', e);
+      }
+    } else {
+      setSchools(INITIAL_SCHOOLS_LIST);
+    }
+  };
+
   const hasPermission = (permissionCode: string): boolean => {
     if (!currentUser) return false;
     if (currentUser.role === 'superadmin') return true;
@@ -458,6 +489,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserStatus,
         deleteUserAccount,
         adminResetPassword,
+        refreshAccounts,
         hasPermission,
       }}
     >
