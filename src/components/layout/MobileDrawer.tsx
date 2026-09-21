@@ -126,7 +126,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         </div>
 
         {/* Menu Navigation List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 space-y-4 overscroll-contain sidebar-scroll">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 px-2">
               Menu Utama

@@ -258,10 +258,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
   const sections = getSections();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-4rem)] flex-shrink-0">
-      {/* Brand Header In Sidebar */}
-      <div className="p-4 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-bold shadow-2xs">
+    <aside className="hidden md:flex flex-col w-64 bg-white border border-slate-200 rounded-3xl sticky top-[5.25rem] h-[calc(100vh-6.25rem)] flex-shrink-0 shadow-2xs overflow-hidden z-10">
+      {/* Brand Header In Sidebar - Pinned at top */}
+      <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-white flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-bold shadow-2xs flex-shrink-0">
           <School className="w-5 h-5" />
         </div>
         <div className="overflow-hidden">
@@ -272,8 +272,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         </div>
       </div>
 
-      {/* Navigation Sections */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      {/* Navigation Sections - Independent Dedicated Scroll Area */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 overscroll-contain sidebar-scroll scroll-smooth">
         {sections.map((section, idx) => (
           <div key={idx}>
             <p className="px-3 text-[10px] font-bold text-slate-400 tracking-wider mb-1.5 uppercase">
@@ -310,8 +310,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         ))}
       </div>
 
-      {/* PWA Promo Card in Desktop Sidebar */}
-      <div className="p-3 border-t border-slate-100">
+      {/* PWA Promo Card in Desktop Sidebar - Pinned at bottom */}
+      <div className="p-3 border-t border-slate-100 bg-white flex-shrink-0">
         <PWAInstallButton variant="sidebar" />
       </div>
     </aside>
