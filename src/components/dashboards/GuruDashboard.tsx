@@ -32,8 +32,17 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
   const todaySchedules = mySchedules.filter((s) => s.day === 'Jumat' || s.day === 'Senin');
 
   // Teacher assignments
-  const myAssignments = assignments.filter((a) => a.teacherId === currentUser?.id || true);
-  const pendingGradingSubmissions = submissions.filter((s) => s.status === 'Diserahkan');
+  const teacherAssignments = assignments.filter(
+    (a) => !currentUser?.id || a.teacherId === currentUser?.id || a.teacherName?.toLowerCase().includes('hendra')
+  );
+  const displayAssignments = teacherAssignments.length > 0 ? teacherAssignments : assignments;
+  const pendingGradingSubmissions = submissions.filter((s) => s.status !== 'Dinilai');
+
+  // Homeroom students (Wali Kelas)
+  const homeroomStudents = students.filter(
+    (s) => s.className === 'X MIPA 1' || s.className?.toLowerCase().includes('x mipa 1')
+  );
+  const totalBinaan = homeroomStudents.length > 0 ? homeroomStudents.length : 32;
 
   return (
     <div className="space-y-6">
@@ -62,30 +71,86 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         </div>
       </div>
 
-      {/* Teacher Metric Cards */}
+      {/* Teacher Metric Cards - Balanced, Proportional & Professional */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 uppercase">Jadwal Mengajar</span>
-          <p className="text-2xl font-black text-slate-800 mt-2">{mySchedules.length} Sesi</p>
-          <p className="text-[11px] text-teal-600 font-semibold mt-1">Terdaftar minggu ini</p>
+        {/* Jadwal Mengajar */}
+        <div
+          onClick={() => setCurrentModule('schedules')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Jadwal Mengajar</span>
+            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <Calendar className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{mySchedules.length}</span>
+              <span className="text-xs font-semibold text-teal-600">Sesi</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Terdaftar minggu ini</p>
+          </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 uppercase">Siswa Binaan (Wali)</span>
-          <p className="text-2xl font-black text-slate-800 mt-2">32 Siswa</p>
-          <p className="text-[11px] text-blue-600 font-semibold mt-1">Kelas X MIPA 1</p>
+        {/* Siswa Binaan */}
+        <div
+          onClick={() => setCurrentModule('students')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Siswa Binaan</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{totalBinaan}</span>
+              <span className="text-xs font-semibold text-blue-600">Siswa</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Wali Kelas X MIPA 1</p>
+          </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 uppercase">Tugas Aktif</span>
-          <p className="text-2xl font-black text-slate-800 mt-2">{myAssignments.length}</p>
-          <p className="text-[11px] text-purple-600 font-semibold mt-1">Sedang berlangsung</p>
+        {/* Tugas Aktif */}
+        <div
+          onClick={() => setCurrentModule('assignments')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Tugas Aktif</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{displayAssignments.length}</span>
+              <span className="text-xs font-semibold text-purple-600">Tugas</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Sedang berlangsung</p>
+          </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-xs font-bold text-slate-500 uppercase">Perlu Dinilai</span>
-          <p className="text-2xl font-black text-amber-600 mt-2">{pendingGradingSubmissions.length} Tugas</p>
-          <p className="text-[11px] text-slate-500 mt-1">Menunggu pemeriksaan guru</p>
+        {/* Perlu Dinilai */}
+        <div
+          onClick={() => setCurrentModule('assignments')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Perlu Dinilai</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <ClipboardCheck className="w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{pendingGradingSubmissions.length}</span>
+              <span className="text-xs font-semibold text-amber-600">Tugas</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Menunggu pemeriksaan</p>
+          </div>
         </div>
       </div>
 
@@ -190,25 +255,33 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
           </div>
 
           <div className="space-y-2.5">
-            {submissions.slice(0, 3).map((sub) => (
-              <div
-                key={sub.id}
-                className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
-              >
-                <div>
-                  <p className="text-xs font-bold text-slate-800">{sub.studentName}</p>
-                  <p className="text-[10px] text-slate-500">
-                    Diserahkan: {sub.submittedAt}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setCurrentModule('assignments')}
-                  className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold"
-                >
-                  Beri Nilai
-                </button>
+            {pendingGradingSubmissions.length === 0 ? (
+              <div className="text-center py-6 text-slate-400 text-xs">
+                <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-1.5 opacity-80" />
+                <p className="font-semibold text-slate-600">Semua tugas telah diperiksa!</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Tidak ada antrean penilaian yang tertunda.</p>
               </div>
-            ))}
+            ) : (
+              pendingGradingSubmissions.slice(0, 3).map((sub) => (
+                <div
+                  key={sub.id}
+                  className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                >
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">{sub.studentName}</p>
+                    <p className="text-[10px] text-slate-500">
+                      Diserahkan: {sub.submittedAt}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentModule('assignments')}
+                    className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold cursor-pointer"
+                  >
+                    Beri Nilai
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
