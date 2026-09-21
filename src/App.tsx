@@ -38,11 +38,12 @@ import { ProfileModule } from './components/modules/ProfileModule';
 import { UserManagementModule } from './components/modules/UserManagementModule';
 import { ChatModule } from './components/modules/ChatModule';
 import { LiveToastNotification } from './components/common/LiveToastNotification';
+import { BottomChatToastNotification } from './components/common/BottomChatToastNotification';
 import { useSiakadData } from './context/SiakadDataContext';
 
 const MainAppContent: React.FC = () => {
   const { isAuthenticated, currentRole } = useAuth();
-  const { latestLiveToast, clearLiveToast } = useSiakadData();
+  const { latestLiveToast, clearLiveToast, latestChatToast, clearChatToast } = useSiakadData();
   const [currentModule, setCurrentModule] = useState<ModuleType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -122,6 +123,17 @@ const MainAppContent: React.FC = () => {
           if (mod) setCurrentModule(mod as ModuleType);
         }}
       />
+
+      {/* Real-time Floating Bottom Chat Card (appears when on dashboard/beranda or outside chat) */}
+      {currentModule !== 'chat' && (
+        <BottomChatToastNotification
+          chatToast={latestChatToast}
+          onClose={clearChatToast}
+          onOpenChat={() => {
+            setCurrentModule('chat');
+          }}
+        />
+      )}
 
       {/* Top Application Header */}
       <AppHeader

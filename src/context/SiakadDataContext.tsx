@@ -33,9 +33,11 @@ import {
   subscribeToRealtimeAnnouncements,
   saveAnnouncementToFirebase,
   deleteAnnouncementFromFirebase,
+  subscribeToRealtimeChat,
   isFirebaseReady,
   SyncEventPayload,
 } from '../lib/firebase';
+import { ChatToastItem } from '../components/common/BottomChatToastNotification';
 import {
   INITIAL_SCHOOL_PROFILE,
   INITIAL_GRADE_WEIGHTS,
@@ -127,6 +129,7 @@ interface SiakadDataContextType {
 
   announcements: Announcement[];
   addAnnouncement: (anc: Omit<Announcement, 'id' | 'publishedDate'>) => void;
+  updateAnnouncement: (id: string, updated: Partial<Announcement>) => void;
   deleteAnnouncement: (id: string) => void;
 
   notifications: NotificationItem[];
@@ -162,6 +165,9 @@ interface SiakadDataContextType {
   liveSyncPulse: boolean;
   latestLiveToast: NotificationItem | null;
   clearLiveToast: () => void;
+  latestChatToast: ChatToastItem | null;
+  clearChatToast: () => void;
+  triggerChatToast: (item: ChatToastItem) => void;
   broadcastLiveAction: (
     type: string,
     module: string,
@@ -180,9 +186,18 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [lastLiveEvent, setLastLiveEvent] = useState<SyncEventPayload | null>(null);
   const [liveSyncPulse, setLiveSyncPulse] = useState<boolean>(false);
   const [latestLiveToast, setLatestLiveToast] = useState<NotificationItem | null>(null);
+  const [latestChatToast, setLatestChatToast] = useState<ChatToastItem | null>(null);
 
   const clearLiveToast = useCallback(() => {
     setLatestLiveToast(null);
+  }, []);
+
+  const clearChatToast = useCallback(() => {
+    setLatestChatToast(null);
+  }, []);
+
+  const triggerChatToast = useCallback((item: ChatToastItem) => {
+    setLatestChatToast(item);
   }, []);
 
   const broadcastLiveAction = (
@@ -358,54 +373,75 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setLiveSyncPulse(true);
       setTimeout(() => setLiveSyncPulse(false), 2500);
 
-      // Instantly trigger interactive notification card on all screens for ANY remote event
-      if (event && event.details) {
-        const modLower = (event.module || '').toLowerCase();
-        const cat = modLower.includes('nilai')
-          ? 'nilai'
-          : modLower.includes('presensi')
-          ? 'presensi'
-          : modLower.includes('tugas')
-          ? 'tugas'
-          : modLower.includes('jadwal')
-          ? 'jadwal'
-          : modLower.includes('pengumuman')
-          ? 'pengumuman'
-          : modLower.includes('keuangan') || modLower.includes('spp') || modLower.includes('tagihan')
-          ? 'keuangan'
-          : 'sistem';
-
-        const link = modLower.includes('nilai')
-          ? 'grades'
-          : modLower.includes('presensi')
-          ? 'attendance'
-          : modLower.includes('tugas')
-          ? 'assignments'
-          : modLower.includes('jadwal')
-          ? 'schedules'
-          : modLower.includes('pengumuman')
-          ? 'announcements'
-          : modLower.includes('siswa') || modLower.includes('kesiswaan')
-          ? 'students'
-          : modLower.includes('guru') || modLower.includes('pendidik')
-          ? 'teachers'
-          : modLower.includes('rombel') || modLower.includes('kelas')
-          ? 'classes'
-          : modLower.includes('keuangan') || modLower.includes('spp')
-          ? 'finances'
-          : undefined;
-
-        setLatestLiveToast({
-          id: `live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          title: `${event.action || 'Pembaruan Terkini'}: ${event.module || 'SIAKAD'}`,
-          message: event.details,
-          time: event.timestamp || 'Baru saja',
-          timestamp: Date.now(),
-          category: cat as any,
-          read: false,
-          targetRole: 'all',
-          linkAction: link,
+      // Handle real-time chat messages
+      if (event.type === 'NEW_CHAT_MESSAGE' && event.dataSnapshot) {
+        const snap = event.dataSnapshot;
+        setLatestChatToast({
+          id: snap.id || `chat-${Date.now()}`,
+          channelId: snap.channelId || 'general',
+          channelName: snap.channelName || 'Saluran Obrolan',
+          senderId: snap.senderId,
+          senderName: snap.senderName || 'Pengguna SIAKAD',
+          senderRole: snap.senderRole || 'siswa',
+          content: snap.content || event.details || '',
+          timestamp: snap.timestamp || event.timestamp || 'Baru saja',
         });
+      } else if (event && event.details) {
+        // EXCLUDE announcement deletion or any delete action from triggering notification cards
+        const isDeletionEvent =
+          event.type === 'ANNOUNCEMENT_DELETED' ||
+          event.type?.includes('DELETED') ||
+          (event.action || '').toLowerCase().includes('hapus') ||
+          (event.details || '').toLowerCase().includes('dihapus');
+
+        if (!isDeletionEvent) {
+          const modLower = (event.module || '').toLowerCase();
+          const cat = modLower.includes('nilai')
+            ? 'nilai'
+            : modLower.includes('presensi')
+            ? 'presensi'
+            : modLower.includes('tugas')
+            ? 'tugas'
+            : modLower.includes('jadwal')
+            ? 'jadwal'
+            : modLower.includes('pengumuman')
+            ? 'pengumuman'
+            : modLower.includes('keuangan') || modLower.includes('spp') || modLower.includes('tagihan')
+            ? 'keuangan'
+            : 'sistem';
+
+          const link = modLower.includes('nilai')
+            ? 'grades'
+            : modLower.includes('presensi')
+            ? 'attendance'
+            : modLower.includes('tugas')
+            ? 'assignments'
+            : modLower.includes('jadwal')
+            ? 'schedules'
+            : modLower.includes('pengumuman')
+            ? 'announcements'
+            : modLower.includes('siswa') || modLower.includes('kesiswaan')
+            ? 'students'
+            : modLower.includes('guru') || modLower.includes('pendidik')
+            ? 'teachers'
+            : modLower.includes('rombel') || modLower.includes('kelas')
+            ? 'classes'
+            : modLower.includes('keuangan') || modLower.includes('spp')
+            ? 'finances'
+            : undefined;
+
+          setLatestLiveToast({
+            id: `live-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            title: `${event.action || 'Pembaruan Terkini'}: ${event.module || 'SIAKAD'}`,
+            message: event.details,
+            time: event.timestamp || 'Baru saja',
+            timestamp: Date.now(),
+            category: cat as any,
+            read: false,
+            targetRole: 'all',
+            linkAction: link,
+          });
+        }
       }
 
       // Instantly synchronize received remote mutations into state
@@ -420,6 +456,14 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             announcements: [anc, ...prev.announcements],
           };
         });
+      } else if (event.type === 'ANNOUNCEMENT_UPDATED' && event.dataSnapshot?.id) {
+        const updated = event.dataSnapshot;
+        setData((prev: any) => ({
+          ...prev,
+          announcements: prev.announcements.map((a: Announcement) =>
+            a.id === updated.id ? { ...a, ...updated } : a
+          ),
+        }));
       } else if (event.type === 'ANNOUNCEMENT_DELETED' && event.dataSnapshot?.id) {
         const deletedId = event.dataSnapshot.id;
         setData((prev: any) => ({
@@ -469,10 +513,36 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     });
 
+    // 4. Global real-time chat listener for incoming messages across all channels
+    let initialChatLoaded = false;
+    const unsubChat = subscribeToRealtimeChat('all', (allMessages) => {
+      if (!initialChatLoaded) {
+        initialChatLoaded = true;
+        return;
+      }
+      if (allMessages && allMessages.length > 0) {
+        const newest = allMessages[allMessages.length - 1];
+        // If message was created recently (within last 12 seconds)
+        if (newest.createdAt && Date.now() - newest.createdAt < 12000) {
+          setLatestChatToast({
+            id: newest.id,
+            channelId: newest.channelId,
+            channelName: newest.channelName,
+            senderId: newest.senderId,
+            senderName: newest.senderName,
+            senderRole: newest.senderRole,
+            content: newest.content,
+            timestamp: newest.timestamp,
+          });
+        }
+      }
+    });
+
     return () => {
       if (typeof unsubAnnouncements === 'function') unsubAnnouncements();
       if (typeof unsubNotifs === 'function') unsubNotifs();
       if (typeof unsubUpdates === 'function') unsubUpdates();
+      if (typeof unsubChat === 'function') unsubChat();
     };
   }, []);
 
@@ -1401,6 +1471,42 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
+  const updateAnnouncement = (id: string, updated: Partial<Announcement>) => {
+    let updatedItem: Announcement | null = null;
+    setData((prev: any) => {
+      const updatedList = prev.announcements.map((a: Announcement) => {
+        if (a.id === id) {
+          updatedItem = { ...a, ...updated };
+          return updatedItem;
+        }
+        return a;
+      });
+      return {
+        ...prev,
+        announcements: updatedList,
+      };
+    });
+
+    if (updatedItem) {
+      const anc = updatedItem as Announcement;
+      // Persist to Firebase Firestore
+      saveAnnouncementToFirebase(anc);
+
+      // Broadcast real-time notification to all dashboards for announcement update
+      notifyChange({
+        title: `Pembaruan Pengumuman: ${anc.title}`,
+        message: anc.content.length > 120 ? `${anc.content.substring(0, 120)}...` : anc.content,
+        category: 'pengumuman',
+        linkAction: 'announcements',
+        type: 'ANNOUNCEMENT_UPDATED',
+        module: 'Pengumuman',
+        action: 'Pembaruan Pengumuman',
+        targetRole: anc.target === 'ALL' ? 'all' : (anc.target.toLowerCase() as any),
+        dataSnapshot: anc,
+      });
+    }
+  };
+
   const deleteAnnouncement = (id: string) => {
     setData((prev: any) => ({
       ...prev,
@@ -1410,12 +1516,12 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // Remove from Firestore
     deleteAnnouncementFromFirebase(id);
 
-    // Broadcast deletion
+    // Broadcast silent deletion sync for data coherence WITHOUT notification details
     broadcastUpdateToFirebase({
       type: 'ANNOUNCEMENT_DELETED',
       module: 'Pengumuman',
-      action: 'Hapus Pengumuman',
-      details: `Pengumuman ID ${id} dihapus dari papan informasi`,
+      action: 'SILENT_DELETE',
+      details: '', // Empty details ensures no notification or toast is ever shown
       authorId: 'admin',
       authorName: 'Administrator Sekolah',
       authorRole: 'admin',
@@ -1778,6 +1884,7 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         announcements: data.announcements,
         addAnnouncement,
+        updateAnnouncement,
         deleteAnnouncement,
 
         notifications: data.notifications,
@@ -1813,6 +1920,9 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         liveSyncPulse,
         latestLiveToast,
         clearLiveToast,
+        latestChatToast,
+        clearChatToast,
+        triggerChatToast,
         broadcastLiveAction,
       }}
     >

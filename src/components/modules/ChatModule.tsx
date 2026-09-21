@@ -22,7 +22,12 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import { ChatMessage, UserRole } from '../../types';
-import { subscribeToRealtimeChat, sendChatMessageToFirebase, isFirebaseReady } from '../../lib/firebase';
+import {
+  subscribeToRealtimeChat,
+  sendChatMessageToFirebase,
+  broadcastUpdateToFirebase,
+  isFirebaseReady,
+} from '../../lib/firebase';
 
 interface ChannelConfig {
   id: string;
@@ -149,6 +154,23 @@ export const ChatModule: React.FC = () => {
 
     try {
       await sendChatMessageToFirebase(newMsg);
+
+      // Broadcast real-time update so clients outside chat room get bottom notification card
+      broadcastUpdateToFirebase({
+        type: 'NEW_CHAT_MESSAGE',
+        module: 'Ruang Chat',
+        action: 'Pesan Baru',
+        details: content,
+        authorId: currentUser?.id || 'guest',
+        authorName: currentUser?.name || 'Pengguna SIAKAD',
+        authorRole: (currentUser?.role || currentRole || 'siswa') as string,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        dataSnapshot: {
+          ...newMsg,
+          id: tempId,
+        },
+      });
+
       setSendSuccessNotice(true);
       setTimeout(() => setSendSuccessNotice(false), 2000);
     } catch (err) {

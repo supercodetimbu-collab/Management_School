@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import { useAuth } from '../../context/AuthContext';
-import { Announcement } from '../../types';
+import { Announcement, AnnouncementTarget } from '../../types';
 import {
   Bell,
   Plus,
@@ -13,20 +13,39 @@ import {
   X,
   Send,
   Pin,
+  Edit2,
 } from 'lucide-react';
 
 export const AnnouncementsModule: React.FC = () => {
-  const { announcements, addAnnouncement, deleteAnnouncement, logAction } = useSiakadData();
+  const { announcements, addAnnouncement, updateAnnouncement, deleteAnnouncement, logAction } = useSiakadData();
   const { currentUser, currentRole } = useAuth();
 
   const [search, setSearch] = useState('');
   const [targetFilter, setTargetFilter] = useState('ALL');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<Announcement | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    content: string;
+    target: AnnouncementTarget;
+    isImportant: boolean;
+  }>({
     title: '',
     content: '',
-    target: 'ALL' as 'ALL' | 'GURU' | 'SISWA' | 'ORANG_TUA',
+    target: 'ALL',
+    isImportant: true,
+  });
+
+  const [editFormData, setEditFormData] = useState<{
+    title: string;
+    content: string;
+    target: AnnouncementTarget;
+    isImportant: boolean;
+  }>({
+    title: '',
+    content: '',
+    target: 'ALL',
     isImportant: true,
   });
 
@@ -52,6 +71,31 @@ export const AnnouncementsModule: React.FC = () => {
       target: 'ALL',
       isImportant: true,
     });
+  };
+
+  const handleStartEdit = (item: Announcement) => {
+    setEditingItem(item);
+    setEditFormData({
+      title: item.title,
+      content: item.content,
+      target: item.target,
+      isImportant: item.isImportant ?? true,
+    });
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || !editFormData.title.trim()) return;
+
+    updateAnnouncement(editingItem.id, {
+      title: editFormData.title,
+      content: editFormData.content,
+      target: editFormData.target,
+      isImportant: editFormData.isImportant,
+    });
+
+    logAction('UPDATE_ANNOUNCEMENT', 'Pengumuman', `Memperbarui pengumuman: ${editFormData.title}`, currentUser!);
+    setEditingItem(null);
   };
 
   const handleDelete = (id: string, title: string) => {
@@ -155,12 +199,22 @@ export const AnnouncementsModule: React.FC = () => {
               </div>
 
               {(currentRole === 'admin' || currentRole === 'superadmin' || currentRole === 'kepsek') && (
-                <button
-                  onClick={() => handleDelete(item.id, item.title)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleStartEdit(item)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-slate-100 transition cursor-pointer"
+                    title="Perbarui Pengumuman"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id, item.title)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100 transition cursor-pointer"
+                    title="Hapus Pengumuman"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -244,6 +298,96 @@ export const AnnouncementsModule: React.FC = () => {
                   className="px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl"
                 >
                   Kirimkan Siaran
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Announcement Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 border border-slate-100">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-teal-600" />
+                Perbarui Informasi Pengumuman
+              </h3>
+              <button
+                onClick={() => setEditingItem(null)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Judul Pengumuman *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                  placeholder="Perbarui judul pengumuman..."
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Sasaran Pengumuman</label>
+                  <select
+                    value={editFormData.target}
+                    onChange={(e) => setEditFormData({ ...editFormData, target: e.target.value as any })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+                  >
+                    <option value="ALL">Semua Warga Sekolah</option>
+                    <option value="GURU">Khusus Dewan Guru</option>
+                    <option value="SISWA">Khusus Siswa</option>
+                    <option value="ORANG_TUA">Khusus Orang Tua / Wali</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center pt-5">
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.isImportant}
+                      onChange={(e) => setEditFormData({ ...editFormData, isImportant: e.target.checked })}
+                      className="rounded text-teal-600 focus:ring-teal-500 w-4 h-4"
+                    />
+                    <span>Sematkan sebagai Penting (Pin)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Isi Lengkap Pengumuman</label>
+                <textarea
+                  rows={4}
+                  required
+                  value={editFormData.content}
+                  onChange={(e) => setEditFormData({ ...editFormData, content: e.target.value })}
+                  placeholder="Tuliskan isi pembaruan pengumuman secara rinci..."
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs"
+                >
+                  Simpan Pembaruan & Siarkan
                 </button>
               </div>
             </form>
