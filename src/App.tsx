@@ -33,6 +33,7 @@ import { AssignmentsModule } from './components/modules/AssignmentsModule';
 import { ExamsModule } from './components/modules/ExamsModule';
 import { AcademicYearModule } from './components/modules/AcademicYearModule';
 import { ReportCardsModule } from './components/modules/ReportCardsModule';
+import { PromotionsGraduationsModule } from './components/modules/PromotionsGraduationsModule';
 import { FinancesModule } from './components/modules/FinancesModule';
 import { AnnouncementsModule } from './components/modules/AnnouncementsModule';
 import { SettingsModule } from './components/modules/SettingsModule';
@@ -102,6 +103,8 @@ const MainAppContent: React.FC = () => {
         return <ExamsModule />;
       case 'report_cards':
         return <ReportCardsModule />;
+      case 'promotions_graduations':
+        return <PromotionsGraduationsModule />;
       case 'finances':
       case 'finance':
         return <FinancesModule />;

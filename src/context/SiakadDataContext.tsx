@@ -93,6 +93,7 @@ interface SiakadDataContextType {
   updateStudent: (id: string, std: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   batchImportStudents: (newStudents: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>[]) => void;
+  batchUpdateStudents: (updates: { id: string; changes: Partial<Student> }[], reason?: string) => void;
 
   parents: Parent[];
   addParent: (prt: Omit<Parent, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -1037,6 +1038,29 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
+  const batchUpdateStudents = (updates: { id: string; changes: Partial<Student> }[], reason?: string) => {
+    const now = new Date().toISOString().split('T')[0];
+    const updateMap = new Map(updates.map((u) => [u.id, u.changes]));
+    setData((prev: any) => ({
+      ...prev,
+      students: prev.students.map((s: Student) => {
+        const changes = updateMap.get(s.id);
+        return changes ? { ...s, ...changes, updatedAt: now } : s;
+      }),
+    }));
+
+    notifyChange({
+      title: reason || `${updates.length} Siswa Diperbarui`,
+      message: `Pemutakhiran status/kelas ${updates.length} siswa berhasil diproses ke database`,
+      category: 'sistem',
+      linkAction: 'promotions_graduations',
+      type: 'STUDENT_UPDATED',
+      module: 'Kenaikan & Kelulusan',
+      action: 'Proses Massal',
+      dataSnapshot: updates,
+    });
+  };
+
   // Parents
   const addParent = (prt: Omit<Parent, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString().split('T')[0];
@@ -1916,6 +1940,7 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updateStudent,
         deleteStudent,
         batchImportStudents,
+        batchUpdateStudents,
 
         parents: data.parents,
         addParent,
