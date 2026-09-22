@@ -154,7 +154,7 @@ const MainAppContent: React.FC = () => {
         onOpenSearch={() => setIsSearchOpen(true)}
       />
 
-      <div className="flex-1 flex max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-5 gap-6 md:h-[calc(100vh-4rem)] md:overflow-hidden items-stretch">
+      <div className="flex-1 flex w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-5 gap-5 lg:gap-6 md:h-[calc(100vh-4rem)] md:overflow-hidden items-stretch">
         {/* Desktop Sidebar Navigation */}
         <Sidebar
           currentModule={currentModule}

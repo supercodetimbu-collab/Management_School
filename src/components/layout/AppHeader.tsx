@@ -106,7 +106,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-30 w-full max-w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
-      <div className="max-w-7xl mx-auto px-2.5 sm:px-5 lg:px-8">
+      <div className="w-full px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-14 sm:h-16 gap-1">
           {/* Left section: Mobile Page Title or Desktop Logo Branding */}
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
