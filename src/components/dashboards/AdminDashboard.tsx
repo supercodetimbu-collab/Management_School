@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import {
@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   TrendingUp,
   Activity,
+  RotateCw,
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -51,26 +52,50 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
   const alpaCount = todayRecords.filter((a) => a.status === 'Alpa').length;
   const attendanceRate = todayRecords.length > 0 ? Math.round((hadirCount / todayRecords.length) * 100) : 96;
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshScreen = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 450);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Greeting Banner */}
+      {/* Greeting Banner with Refresh Button */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-600 text-white p-5 sm:p-8 shadow-sm">
-        <div className="relative z-10 max-w-2xl">
-          <div className="flex items-center gap-2 flex-wrap mb-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
-              <School className="w-3.5 h-3.5 text-white" />
-              <span>{schoolProfile.name}</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-teal-100 text-xs font-semibold border border-white/20">
-              <span>Tahun Ajaran {activeAcademicYear.name} ({activeAcademicYear.semester})</span>
-            </span>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 flex-wrap mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
+                <School className="w-3.5 h-3.5 text-white" />
+                <span>{schoolProfile.name}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-teal-100 text-xs font-semibold border border-white/20">
+                <span>Tahun Ajaran {activeAcademicYear.name} ({activeAcademicYear.semester})</span>
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+              Selamat datang, {currentUser?.name || 'Administrator'} 👋
+            </h1>
+            <p className="text-teal-100 text-xs sm:text-sm mt-1 leading-relaxed">
+              Portal Administrasi {schoolProfile.name} siap digunakan untuk monitoring dan tata kelola akademik sekolah.
+            </p>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-            Selamat datang, {currentUser?.name || 'Administrator'} 👋
-          </h1>
-          <p className="text-teal-100 text-xs sm:text-sm mt-1 leading-relaxed">
-            Portal Administrasi {schoolProfile.name} siap digunakan untuk monitoring dan tata kelola akademik sekolah.
-          </p>
+
+          {/* Refresh Screen Button */}
+          <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto self-stretch sm:self-auto">
+            <button
+              onClick={handleRefreshScreen}
+              disabled={isRefreshing}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
+              title="Segarkan tampilan layar dan sinkronkan data terbaru"
+            >
+              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-teal-200' : 'text-white'}`} />
+              <span>{isRefreshing ? 'Menyegarkan Layar...' : 'Refresh Layar'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Decorative circle */}

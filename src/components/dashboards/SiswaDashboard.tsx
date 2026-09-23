@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import {
@@ -15,6 +15,7 @@ import {
   ChevronRight,
   TrendingUp,
   School,
+  RotateCw,
 } from 'lucide-react';
 
 interface SiswaDashboardProps {
@@ -43,14 +44,35 @@ export const SiswaDashboard: React.FC<SiswaDashboardProps> = ({ setCurrentModule
   // My assignments
   const myAssignments = assignments.filter((a) => a.classId === myStudent.classId);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshScreen = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 450);
+  };
+
   return (
     <div className="space-y-5">
       {/* Student Profile & Quick Overview Card */}
       <div className="rounded-3xl bg-gradient-to-tr from-teal-800 via-teal-700 to-emerald-600 text-white p-5 sm:p-6 shadow-md relative overflow-hidden">
-        {/* School Name Tag */}
-        <div className="relative z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold mb-3 border border-white/20 backdrop-blur-xs">
-          <School className="w-3.5 h-3.5 text-white" />
-          <span>{schoolProfile.name}</span>
+        {/* School Name Tag & Refresh Button Bar */}
+        <div className="relative z-10 flex items-center justify-between gap-2 mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
+            <School className="w-3.5 h-3.5 text-white" />
+            <span>{schoolProfile.name}</span>
+          </div>
+
+          <button
+            onClick={handleRefreshScreen}
+            disabled={isRefreshing}
+            className="px-3 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/25 backdrop-blur-md text-[11px] font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-75"
+            title="Segarkan tampilan layar dan sinkronkan data terbaru"
+          >
+            <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-teal-200' : 'text-white'}`} />
+            <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Layar'}</span>
+          </button>
         </div>
 
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

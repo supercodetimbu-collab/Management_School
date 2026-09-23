@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import {
@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Megaphone,
   ArrowRight,
+  RotateCw,
 } from 'lucide-react';
 
 interface KepalaSekolahDashboardProps {
@@ -32,6 +33,15 @@ export const KepalaSekolahDashboard: React.FC<KepalaSekolahDashboardProps> = ({
   const totalStudents = students.filter((s) => s.status === 'Aktif').length;
   const totalTeachers = teachers.filter((t) => t.status === 'Aktif').length;
   const totalClasses = classes.filter((c) => c.status === 'Aktif').length;
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshScreen = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 450);
+  };
 
   return (
     <div className="space-y-6">
@@ -51,7 +61,16 @@ export const KepalaSekolahDashboard: React.FC<KepalaSekolahDashboardProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0 w-full sm:w-auto">
+            <button
+              onClick={handleRefreshScreen}
+              disabled={isRefreshing}
+              className="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
+              title="Segarkan tampilan layar dan sinkronkan data terbaru"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-teal-200' : 'text-white'}`} />
+              <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Layar'}</span>
+            </button>
             <button
               onClick={() => setCurrentModule('chat')}
               className="px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer border border-white/20"

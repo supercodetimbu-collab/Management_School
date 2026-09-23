@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
   Zap,
   School,
+  RotateCw,
 } from 'lucide-react';
 
 interface GuruDashboardProps {
@@ -90,6 +91,15 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
   );
   const totalBinaan = homeroomStudents.length > 0 ? homeroomStudents.length : 32;
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshScreen = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 450);
+  };
+
   return (
     <div className="space-y-6">
       {/* Teacher Greeting */}
@@ -109,17 +119,29 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
               Selamat Mengajar, {currentUser?.name || 'Bpk. Hendra Gunawan, M.Pd'} 👨‍🏫
             </h1>
             <p className="text-blue-100 text-xs sm:text-sm mt-1">
-              Guru Mata Pelajaran Matematika • Wali Kelas X MIPA 1
+              Guru Mata Pelajaran Matematika • Wali Kelas X MIPA 1 • {schoolProfile.name}
             </p>
           </div>
 
-          <button
-            onClick={() => setCurrentModule('attendance')}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white text-teal-800 hover:bg-teal-50 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
-          >
-            <ClipboardCheck className="w-4 h-4 text-teal-600" />
-            <span>Presensi Siswa Hari Ini</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-shrink-0">
+            <button
+              onClick={handleRefreshScreen}
+              disabled={isRefreshing}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
+              title="Segarkan tampilan layar dan sinkronkan data terbaru"
+            >
+              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-teal-200' : 'text-white'}`} />
+              <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Layar'}</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentModule('attendance')}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white text-teal-800 hover:bg-teal-50 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
+            >
+              <ClipboardCheck className="w-4 h-4 text-teal-600" />
+              <span>Presensi Siswa</span>
+            </button>
+          </div>
         </div>
       </div>
 

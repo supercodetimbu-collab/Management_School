@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import {
@@ -17,6 +17,7 @@ import {
   Megaphone,
   ArrowRight,
   School,
+  RotateCw,
 } from 'lucide-react';
 
 interface OrangTuaDashboardProps {
@@ -52,6 +53,15 @@ export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrent
   // Child's class info
   const childClass = classes.find((c) => c.id === activeChild?.classId);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshScreen = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 450);
+  };
+
   return (
     <div className="space-y-5">
       {/* Parent Header */}
@@ -75,25 +85,37 @@ export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrent
             </p>
           </div>
 
-          {/* Child Selector Tabs (Multi-children support) */}
-          {myChildren.length > 1 && (
-            <div className="bg-black/20 p-1.5 rounded-2xl flex items-center gap-1.5 backdrop-blur-xs w-full sm:w-auto overflow-x-auto">
-              <span className="text-[11px] font-bold text-amber-200 px-2 flex-shrink-0">Pilih Anak:</span>
-              {myChildren.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedChildId(c.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex-shrink-0 ${
-                    activeChild?.id === c.id
-                      ? 'bg-white text-amber-900 shadow-xs'
-                      : 'text-white hover:bg-white/10'
-                  }`}
-                >
-                  {c.name.split(' ')[0]} ({c.className})
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto flex-shrink-0">
+            <button
+              onClick={handleRefreshScreen}
+              disabled={isRefreshing}
+              className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
+              title="Segarkan tampilan layar dan sinkronkan data terbaru"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-amber-200' : 'text-white'}`} />
+              <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Layar'}</span>
+            </button>
+
+            {/* Child Selector Tabs (Multi-children support) */}
+            {myChildren.length > 1 && (
+              <div className="bg-black/20 p-1.5 rounded-2xl flex items-center gap-1.5 backdrop-blur-xs w-full sm:w-auto overflow-x-auto">
+                <span className="text-[11px] font-bold text-amber-200 px-2 flex-shrink-0">Pilih Anak:</span>
+                {myChildren.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedChildId(c.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex-shrink-0 ${
+                      activeChild?.id === c.id
+                        ? 'bg-white text-amber-900 shadow-xs'
+                        : 'text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {c.name.split(' ')[0]} ({c.className})
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
