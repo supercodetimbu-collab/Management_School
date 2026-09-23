@@ -1512,7 +1512,7 @@ export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     content: 'Kami mengundang Bapak/Ibu orang tua/wali siswa kelas X dalam pertemuan sosialisasi program akademik sekolah dan peluncuran portal SIAKAD terpadu pada hari Sabtu, 26 September 2026 pukul 08:30 WIB di Aula Utama.',
     category: 'Kegiatan',
     target: 'Orang Tua',
-    authorName: 'Humas SMAN 1 Teladan',
+    authorName: 'Humas Sekolah',
     publishedDate: '2026-09-14',
     isImportant: true,
   },

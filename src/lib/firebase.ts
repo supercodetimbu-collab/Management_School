@@ -17,7 +17,7 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { ChatMessage, NotificationItem, Announcement, DatabaseBackupLog, DatabaseSystemConfig } from '../types';
+import { ChatMessage, NotificationItem, Announcement, DatabaseBackupLog, DatabaseSystemConfig, SchoolProfile } from '../types';
 
 let app: FirebaseApp;
 let db: Firestore | null = null;
@@ -424,3 +424,45 @@ export async function saveDatabaseConfigToFirebase(config: DatabaseSystemConfig)
     console.warn('[Firestore] Failed to save database config:', err);
   }
 }
+
+// ----------------------------------------------------
+// 6. OFFICIAL INSTITUTIONAL SCHOOL PROFILE (Firestore Sync)
+// ----------------------------------------------------
+const SCHOOL_PROFILE_PATH = 'system_config';
+const SCHOOL_PROFILE_ID = 'school_profile';
+
+export function subscribeToSchoolProfile(callback: (profile: SchoolProfile) => void): Unsubscribe | (() => void) {
+  if (!db) return () => {};
+  try {
+    const docRef = doc(db, SCHOOL_PROFILE_PATH, SCHOOL_PROFILE_ID);
+    return onSnapshot(
+      docRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as SchoolProfile;
+          if (data && data.name) {
+            callback(data);
+          }
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] SchoolProfile listener notice:', err);
+      }
+    );
+  } catch (err) {
+    console.warn('[Firestore] Failed to subscribe to SchoolProfile:', err);
+    return () => {};
+  }
+}
+
+export async function saveSchoolProfileToFirebase(profile: SchoolProfile) {
+  if (!db) return;
+  try {
+    const docRef = doc(db, SCHOOL_PROFILE_PATH, SCHOOL_PROFILE_ID);
+    await setDoc(docRef, profile, { merge: true });
+    console.log('[Firestore] SchoolProfile synchronized to cloud:', profile.name);
+  } catch (err) {
+    console.warn('[Firestore] Failed to save SchoolProfile to cloud:', err);
+  }
+}
+

@@ -77,9 +77,39 @@
         "details": { "type": "string" }
       },
       "required": ["timestamp", "destination", "status"]
+    },
+    "SchoolProfile": {
+      "title": "SchoolProfile",
+      "description": "Official institutional school profile identity synchronized across all accounts and roles",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "npsn": { "type": "string" },
+        "level": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "logo": { "type": "string" },
+        "address": { "type": "string" },
+        "village": { "type": "string" },
+        "district": { "type": "string" },
+        "city": { "type": "string" },
+        "province": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "website": { "type": "string" },
+        "principalName": { "type": "string" },
+        "principalNip": { "type": "string" },
+        "accreditation": { "type": "string" },
+        "themeColor": { "type": "string" }
+      },
+      "required": ["name", "npsn"]
     }
   },
   "firestore": {
+    "/system_config/school_profile": {
+      "schema": "SchoolProfile",
+      "description": "Global official school identity profile synchronized across all accounts and clients"
+    },
     "/announcements/{announcementId}": {
       "schema": "Announcement",
       "description": "Real-time school announcements broadcast across all dashboards"

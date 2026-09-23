@@ -33,14 +33,33 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Helper to read current school name from persisted siakad_app_data if available
+  // Helper to read current school name from persistent storage (master db, school profile, or fallback)
   const getPersistedSchoolName = (): string | null => {
     try {
+      // 1. Direct school profile key
+      const direct = localStorage.getItem('siakad_school_profile');
+      if (direct) {
+        const parsed = JSON.parse(direct);
+        if (parsed?.name && typeof parsed.name === 'string' && parsed.name.trim()) {
+          return parsed.name.trim();
+        }
+      }
+
+      // 2. Primary database storage key
+      const masterDb = localStorage.getItem('siakad_master_database_v1');
+      if (masterDb) {
+        const parsed = JSON.parse(masterDb);
+        if (parsed?.schoolProfile?.name && typeof parsed.schoolProfile.name === 'string' && parsed.schoolProfile.name.trim()) {
+          return parsed.schoolProfile.name.trim();
+        }
+      }
+
+      // 3. Fallback key
       const savedSiakad = localStorage.getItem('siakad_app_data');
       if (savedSiakad) {
         const parsed = JSON.parse(savedSiakad);
-        if (parsed?.schoolProfile?.name) {
-          return parsed.schoolProfile.name;
+        if (parsed?.schoolProfile?.name && typeof parsed.schoolProfile.name === 'string' && parsed.schoolProfile.name.trim()) {
+          return parsed.schoolProfile.name.trim();
         }
       }
     } catch (e) {
@@ -137,18 +156,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // 2. Update all accounts
-    setAccounts((prev) =>
-      prev.map((acc) =>
+    setAccounts((prev) => {
+      const updated = prev.map((acc) =>
         acc.role === 'superadmin' ? acc : { ...acc, schoolName: cleanName }
-      )
-    );
+      );
+      try {
+        localStorage.setItem('siakad_system_accounts', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
 
     // 3. Update schools entity
-    setSchools((prev) =>
-      prev.map((sch) =>
+    setSchools((prev) => {
+      const updated = prev.map((sch) =>
         sch.id === 'sch-01' ? { ...sch, name: cleanName } : sch
-      )
-    );
+      );
+      try {
+        localStorage.setItem('siakad_system_schools', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
   };
 
   // Listen to global school update event
@@ -159,10 +190,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
     window.addEventListener('siakad_school_updated', handleSchoolUpdateEvent);
+
+    // Cross-tab storage listener
+    const handleStorageChange = (e: StorageEvent) => {
+      if (
+        e.key === 'siakad_master_database_v1' ||
+        e.key === 'siakad_school_profile' ||
+        e.key === 'siakad_system_schools'
+      ) {
+        const activeName = getPersistedSchoolName();
+        if (activeName) {
+          syncSchoolName(activeName);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
     return () => {
       window.removeEventListener('siakad_school_updated', handleSchoolUpdateEvent);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+
+  // Ensure currentUser.schoolName is always aligned with active school name
+  useEffect(() => {
+    const activeName = getPersistedSchoolName();
+    if (activeName && currentUser && currentUser.role !== 'superadmin' && currentUser.schoolName !== activeName) {
+      setCurrentUser((prev) => (prev ? { ...prev, schoolName: activeName } : null));
+    }
+  }, [currentUser]);
 
   // Sync accounts to localStorage
   useEffect(() => {
@@ -225,7 +281,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    // Extract User without sensitive password
+    // Extract User without sensitive password, enforcing active school profile
+    const activeSchool = getPersistedSchoolName();
     const safeUser: User = {
       id: account.id,
       username: account.username,
@@ -234,8 +291,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: account.role,
       avatar: account.avatar,
       phone: account.phone,
-      schoolId: account.schoolId,
-      schoolName: account.schoolName,
+      schoolId: account.schoolId || 'sch-01',
+      schoolName: account.role === 'superadmin' ? undefined : (activeSchool || account.schoolName || 'SMA NEGERI 1 TELADAN'),
       status: account.status,
       linkedId: account.linkedId,
       linkedStudentIds: account.linkedStudentIds,

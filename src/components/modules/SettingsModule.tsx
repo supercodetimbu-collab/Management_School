@@ -59,6 +59,11 @@ export const SettingsModule: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [auditSearch, setAuditSearch] = useState('');
 
+  // Keep local form in sync with global school profile if updated elsewhere
+  useEffect(() => {
+    setProfileForm(schoolProfile);
+  }, [schoolProfile]);
+
   // Superadmin Cloud & Database state
   const [cloudConfig, setCloudConfig] = useState<DatabaseSystemConfig>(INITIAL_DATABASE_CONFIG);
   const [isSyncingDrive, setIsSyncingDrive] = useState(false);
@@ -96,6 +101,11 @@ export const SettingsModule: React.FC = () => {
     e.preventDefault();
     updateSchoolProfile(profileForm);
     syncSchoolName(profileForm.name);
+    try {
+      localStorage.setItem('siakad_school_profile', JSON.stringify(profileForm));
+    } catch {
+      // ignore
+    }
     logAction('UPDATE_PROFILE', 'Pengaturan', `Memperbarui profil data sekolah ke "${profileForm.name}"`, currentUser!);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);

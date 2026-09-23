@@ -162,8 +162,8 @@ export const UserManagementModule: React.FC = () => {
       email: newUserEmail.trim(),
       role: newUserRole,
       phone: newUserPhone.trim(),
-      schoolId: targetSchool ? targetSchool.id : (newUserRole === 'superadmin' ? undefined : 'sch-01'),
-      schoolName: targetSchool ? targetSchool.name : (newUserRole === 'superadmin' ? undefined : schoolProfile.name),
+      schoolId: isSuperAdmin ? (targetSchool?.id || 'sch-01') : 'sch-01',
+      schoolName: isSuperAdmin ? (targetSchool?.name || schoolProfile.name) : schoolProfile.name,
       status: 'active',
     });
 

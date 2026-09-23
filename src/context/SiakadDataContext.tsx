@@ -34,6 +34,8 @@ import {
   saveAnnouncementToFirebase,
   deleteAnnouncementFromFirebase,
   subscribeToRealtimeChat,
+  subscribeToSchoolProfile,
+  saveSchoolProfileToFirebase,
   isFirebaseReady,
   SyncEventPayload,
 } from '../lib/firebase';
@@ -542,11 +544,45 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     });
 
+    // 5. Official School Profile sync across all devices and dashboards
+    const unsubSchoolProfile = subscribeToSchoolProfile((remoteProfile) => {
+      if (remoteProfile && remoteProfile.name) {
+        setData((prev: any) => {
+          if (
+            prev.schoolProfile?.name === remoteProfile.name &&
+            prev.schoolProfile?.npsn === remoteProfile.npsn &&
+            prev.schoolProfile?.address === remoteProfile.address
+          ) {
+            return prev;
+          }
+          return {
+            ...prev,
+            schoolProfile: { ...prev.schoolProfile, ...remoteProfile },
+          };
+        });
+
+        // Broadcast to other contexts in this window
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('siakad_school_updated', {
+              detail: { name: remoteProfile.name },
+            })
+          );
+          try {
+            localStorage.setItem('siakad_school_profile', JSON.stringify(remoteProfile));
+          } catch {
+            // ignore
+          }
+        }
+      }
+    });
+
     return () => {
       if (typeof unsubAnnouncements === 'function') unsubAnnouncements();
       if (typeof unsubNotifs === 'function') unsubNotifs();
       if (typeof unsubUpdates === 'function') unsubUpdates();
       if (typeof unsubChat === 'function') unsubChat();
+      if (typeof unsubSchoolProfile === 'function') unsubSchoolProfile();
     };
   }, []);
 
@@ -636,18 +672,40 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // School Profile
   const updateSchoolProfile = (profileUpdate: Partial<SchoolProfile>) => {
-    setData((prev: any) => ({
-      ...prev,
-      schoolProfile: { ...prev.schoolProfile, ...profileUpdate },
-    }));
+    let mergedProfile: SchoolProfile = { ...data.schoolProfile, ...profileUpdate };
+    setData((prev: any) => {
+      mergedProfile = { ...prev.schoolProfile, ...profileUpdate };
+      return {
+        ...prev,
+        schoolProfile: mergedProfile,
+      };
+    });
 
-    // Trigger real-time cross-context synchronization
-    if (typeof window !== 'undefined' && profileUpdate.name) {
-      window.dispatchEvent(
-        new CustomEvent('siakad_school_updated', {
-          detail: { name: profileUpdate.name },
-        })
-      );
+    // Save to Firebase Firestore immediately
+    saveSchoolProfileToFirebase(mergedProfile).catch(console.warn);
+
+    // Persist immediately to dedicated local storage keys
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('siakad_school_profile', JSON.stringify(mergedProfile));
+        const currentMaster = localStorage.getItem(STORAGE_KEY);
+        if (currentMaster) {
+          const parsed = JSON.parse(currentMaster);
+          parsed.schoolProfile = mergedProfile;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch {
+        // ignore
+      }
+
+      // Trigger real-time cross-context synchronization
+      if (profileUpdate.name) {
+        window.dispatchEvent(
+          new CustomEvent('siakad_school_updated', {
+            detail: { name: profileUpdate.name, profile: mergedProfile },
+          })
+        );
+      }
     }
 
     notifyChange({
