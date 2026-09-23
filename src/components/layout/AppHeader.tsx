@@ -17,6 +17,7 @@ import {
   Layers,
   Menu,
   UserCog,
+  X,
 } from 'lucide-react';
 import { UserRole } from '../../types';
 
@@ -196,6 +197,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                 className="relative p-2 rounded-xl text-slate-600 hover:text-teal-700 hover:bg-teal-50 transition cursor-pointer"
                 title="Pemberitahuan & Notifikasi"
+                aria-label="Notifikasi"
               >
                 <Bell className="w-5 h-5" />
                 {unreadNotifications.length > 0 && (
@@ -205,9 +207,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 )}
               </button>
 
+              {/* Backdrop on mobile screens to dismiss cleanly */}
               {showNotifDropdown && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white shadow-2xl border border-slate-100 py-3 z-50 animate-in fade-in zoom-in-95 duration-100">
-                  <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100">
+                <div
+                  className="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs z-40 sm:hidden animate-in fade-in duration-150"
+                  onClick={() => setShowNotifDropdown(false)}
+                />
+              )}
+
+              {/* Notification Popover: full-width on mobile (inset-x-3 top-16), anchored on desktop */}
+              {showNotifDropdown && (
+                <div className="fixed inset-x-3 top-16 sm:inset-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200/90 py-3 z-50 animate-in fade-in slide-in-from-top-2 sm:zoom-in-95 duration-150 overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)] sm:max-h-[500px]">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 pb-2.5 border-b border-slate-100 flex-shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-800">Notifikasi</span>
                       {unreadNotifications.length > 0 && (
@@ -216,20 +228,35 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         </span>
                       )}
                     </div>
-                    {unreadNotifications.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      {unreadNotifications.length > 0 && (
+                        <button
+                          onClick={markAllNotificationsAsRead}
+                          className="text-[11px] text-teal-600 hover:text-teal-700 font-semibold cursor-pointer"
+                        >
+                          Tandai dibaca
+                        </button>
+                      )}
                       <button
-                        onClick={markAllNotificationsAsRead}
-                        className="text-[11px] text-teal-600 hover:text-teal-700 font-semibold cursor-pointer"
+                        onClick={() => setShowNotifDropdown(false)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 sm:hidden cursor-pointer"
+                        title="Tutup Notifikasi"
                       >
-                        Tandai semua dibaca
+                        <X className="w-4 h-4" />
                       </button>
-                    )}
+                    </div>
                   </div>
-                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+
+                  {/* List */}
+                  <div className="overflow-y-auto divide-y divide-slate-100 flex-1 overscroll-contain">
                     {notifications.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-slate-400">Belum ada notifikasi baru</div>
+                      <div className="p-8 text-center text-xs text-slate-400">
+                        <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2 opacity-60" />
+                        <p className="font-semibold text-slate-600">Belum ada notifikasi baru</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Semua pembaruan akademik akan muncul di sini</p>
+                      </div>
                     ) : (
-                      notifications.slice(0, 5).map((n) => (
+                      notifications.slice(0, 8).map((n) => (
                         <div
                           key={n.id}
                           onClick={() => {
@@ -240,30 +267,41 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                             setShowNotifDropdown(false);
                           }}
                           className={`p-3 text-xs hover:bg-slate-50 transition cursor-pointer flex items-start gap-2.5 ${
-                            !n.read ? 'bg-teal-50/40' : ''
+                            !n.read ? 'bg-teal-50/50' : ''
                           }`}
                         >
                           <div
                             className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${
-                              !n.read ? 'bg-teal-600' : 'bg-slate-300'
+                              !n.read ? 'bg-teal-600 ring-2 ring-teal-200' : 'bg-slate-300'
                             }`}
                           />
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-800 leading-tight">{n.title}</p>
-                            <p className="text-slate-600 text-[11px] mt-0.5 line-clamp-2">{n.message}</p>
-                            <span className="text-[10px] text-slate-400 mt-1 block">{n.time}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="font-bold text-slate-800 leading-tight truncate">{n.title}</p>
+                              {n.category && (
+                                <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 flex-shrink-0">
+                                  {n.category}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-slate-600 text-[11px] mt-1 line-clamp-2 break-words leading-relaxed">
+                              {n.message}
+                            </p>
+                            <span className="text-[10px] text-slate-400 mt-1 block font-medium">{n.time}</span>
                           </div>
                         </div>
                       ))
                     )}
                   </div>
-                  <div className="pt-2 px-3 border-t border-slate-100 text-center">
+
+                  {/* Footer */}
+                  <div className="pt-2 px-3 border-t border-slate-100 text-center flex-shrink-0 bg-slate-50/50">
                     <button
                       onClick={() => {
                         setCurrentModule('announcements');
                         setShowNotifDropdown(false);
                       }}
-                      className="text-xs font-semibold text-teal-700 hover:underline"
+                      className="text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline py-1 block w-full cursor-pointer"
                     >
                       Buka Semua Pengumuman & Notifikasi →
                     </button>
@@ -290,8 +328,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <ChevronDown className="hidden lg:block w-3.5 h-3.5 text-slate-400" />
               </button>
 
+              {/* Mobile backdrop for user dropdown */}
               {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white shadow-2xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div
+                  className="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs z-40 sm:hidden animate-in fade-in duration-150"
+                  onClick={() => setShowUserDropdown(false)}
+                />
+              )}
+
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white shadow-2xl border border-slate-200/90 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-3.5 py-2 border-b border-slate-100">
                     <p className="text-xs font-bold text-slate-800 truncate">{currentUser?.name}</p>
                     <p className="text-[11px] text-slate-500 truncate">{currentUser?.email}</p>
