@@ -33,6 +33,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
     announcements,
     auditLogs,
     activeAcademicYear,
+    schoolProfile,
   } = useSiakadData();
 
   // Quick stats
@@ -53,16 +54,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
   return (
     <div className="space-y-6">
       {/* Greeting Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-600 text-white p-6 sm:p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-600 text-white p-5 sm:p-8 shadow-sm">
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-teal-100 text-xs font-semibold mb-3 border border-white/20">
-            <span>Tahun Ajaran {activeAcademicYear.name} ({activeAcademicYear.semester})</span>
+          <div className="flex items-center gap-2 flex-wrap mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
+              <School className="w-3.5 h-3.5 text-white" />
+              <span>{schoolProfile.name}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-teal-100 text-xs font-semibold border border-white/20">
+              <span>Tahun Ajaran {activeAcademicYear.name} ({activeAcademicYear.semester})</span>
+            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight">
             Selamat datang, {currentUser?.name || 'Administrator'} 👋
           </h1>
           <p className="text-teal-100 text-xs sm:text-sm mt-1 leading-relaxed">
-            Portal Administrasi SIAKAD siap digunakan untuk monitoring dan tata kelola akademik sekolah hari ini.
+            Portal Administrasi {schoolProfile.name} siap digunakan untuk monitoring dan tata kelola akademik sekolah.
           </p>
         </div>
 

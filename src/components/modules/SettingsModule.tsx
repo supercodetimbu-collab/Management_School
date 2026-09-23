@@ -44,7 +44,7 @@ export const SettingsModule: React.FC = () => {
     resetToDemoData,
     logAction,
   } = useSiakadData();
-  const { currentUser, currentRole } = useAuth();
+  const { currentUser, currentRole, syncSchoolName } = useAuth();
 
   // Strict RBAC: only Admin and Superadmin can access Settings
   const isSuperAdmin = currentRole === 'superadmin';
@@ -95,7 +95,8 @@ export const SettingsModule: React.FC = () => {
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     updateSchoolProfile(profileForm);
-    logAction('UPDATE_PROFILE', 'Pengaturan', 'Memperbarui profil data sekolah', currentUser!);
+    syncSchoolName(profileForm.name);
+    logAction('UPDATE_PROFILE', 'Pengaturan', `Memperbarui profil data sekolah ke "${profileForm.name}"`, currentUser!);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
   };

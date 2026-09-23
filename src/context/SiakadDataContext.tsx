@@ -641,6 +641,15 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       schoolProfile: { ...prev.schoolProfile, ...profileUpdate },
     }));
 
+    // Trigger real-time cross-context synchronization
+    if (typeof window !== 'undefined' && profileUpdate.name) {
+      window.dispatchEvent(
+        new CustomEvent('siakad_school_updated', {
+          detail: { name: profileUpdate.name },
+        })
+      );
+    }
+
     notifyChange({
       title: 'Profil Sekolah Diperbarui',
       message: `Informasi data "${profileUpdate.name || 'Sekolah'}" telah berhasil diperbarui`,

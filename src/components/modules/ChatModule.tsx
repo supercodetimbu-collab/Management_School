@@ -138,7 +138,7 @@ export const ChatModule: React.FC = () => {
       senderId: currentUser?.id || 'guest-01',
       senderName: currentUser?.name || 'Pengguna SIAKAD',
       senderRole: (currentUser?.role || currentRole || 'siswa') as UserRole,
-      senderSchoolName: schoolProfile?.name || 'SMA Negeri 1 Jakarta',
+      senderSchoolName: schoolProfile?.name || currentUser?.schoolName || 'SIAKAD Sekolah',
       content,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
     };

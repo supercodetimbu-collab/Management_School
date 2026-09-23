@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   ChevronRight,
   TrendingUp,
+  School,
 } from 'lucide-react';
 
 interface SiswaDashboardProps {
@@ -22,7 +23,7 @@ interface SiswaDashboardProps {
 
 export const SiswaDashboard: React.FC<SiswaDashboardProps> = ({ setCurrentModule }) => {
   const { currentUser } = useAuth();
-  const { students, schedules, grades, assignments, announcements, activeAcademicYear } = useSiakadData();
+  const { students, schedules, grades, assignments, announcements, activeAcademicYear, schoolProfile } = useSiakadData();
 
   // Find logged in student or default to Farhan
   const myStudent =
@@ -46,6 +47,12 @@ export const SiswaDashboard: React.FC<SiswaDashboardProps> = ({ setCurrentModule
     <div className="space-y-5">
       {/* Student Profile & Quick Overview Card */}
       <div className="rounded-3xl bg-gradient-to-tr from-teal-800 via-teal-700 to-emerald-600 text-white p-5 sm:p-6 shadow-md relative overflow-hidden">
+        {/* School Name Tag */}
+        <div className="relative z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold mb-3 border border-white/20 backdrop-blur-xs">
+          <School className="w-3.5 h-3.5 text-white" />
+          <span>{schoolProfile.name}</span>
+        </div>
+
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white font-black text-2xl shadow-inner">
@@ -150,15 +157,15 @@ export const SiswaDashboard: React.FC<SiswaDashboardProps> = ({ setCurrentModule
               todaySchedules.map((sch) => (
                 <div
                   key={sch.id}
-                  className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between"
+                  className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2.5"
                 >
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">{sch.subjectName}</p>
-                    <p className="text-[11px] text-slate-500">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-800 truncate">{sch.subjectName}</p>
+                    <p className="text-[11px] text-slate-500 truncate">
                       {sch.teacherName} • Ruang: {sch.room}
                     </p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-xl bg-teal-100 text-teal-800 font-mono text-xs font-bold">
+                  <span className="px-2.5 py-1 rounded-xl bg-teal-100 text-teal-800 font-mono text-xs font-bold flex-shrink-0 whitespace-nowrap">
                     {sch.startTime} - {sch.endTime}
                   </span>
                 </div>

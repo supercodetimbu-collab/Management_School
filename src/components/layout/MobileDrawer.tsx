@@ -74,13 +74,13 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200">
         {/* Drawer Header */}
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-teal-700 text-white">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold text-sm">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold text-sm flex-shrink-0">
               <School className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <p className="text-xs font-bold truncate max-w-[170px]">{schoolProfile.name}</p>
-              <p className="text-[10px] text-teal-100">SIAKAD Mobile</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold truncate">{schoolProfile.name}</p>
+              <p className="text-[10px] text-teal-100 font-medium">SIAKAD Mobile</p>
             </div>
           </div>
           <button

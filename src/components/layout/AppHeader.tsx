@@ -137,11 +137,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </div>
 
               {/* Mobile View: Dynamic Page Title */}
-              <div className="sm:hidden flex flex-col min-w-0 overflow-hidden">
-                <span className="font-bold text-slate-800 text-xs tracking-tight truncate max-w-[110px]">
+              <div className="sm:hidden flex flex-col min-w-0 flex-1 overflow-hidden">
+                <span className="font-bold text-slate-800 text-xs tracking-tight truncate">
                   {getModuleTitle(currentModule)}
                 </span>
-                <span className="text-[10px] text-teal-600 font-medium truncate max-w-[110px]">
+                <span className="text-[10px] text-teal-600 font-semibold truncate">
                   {schoolProfile.name}
                 </span>
               </div>
@@ -181,14 +181,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <span className="hidden xl:inline font-bold">Firebase Live</span>
             </div>
 
-            {/* Active User Role Badge */}
+            {/* Active User Role Badge (Clean display on sm+, on mobile indicated in profile avatar & drawer) */}
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border flex-shrink-0 ${
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border flex-shrink-0 ${
                 roleLabels[currentRole]?.badgeColor || 'bg-slate-100 text-slate-700'
               }`}
             >
               <span className="inline-block w-2 h-2 rounded-full bg-current flex-shrink-0"></span>
-              <span className="truncate max-w-[90px] sm:max-w-none">{roleLabels[currentRole]?.label || currentRole}</span>
+              <span className="truncate max-w-[120px] lg:max-w-none">{roleLabels[currentRole]?.label || currentRole}</span>
             </div>
 
             {/* Notification Bell with Badge & Dropdown */}

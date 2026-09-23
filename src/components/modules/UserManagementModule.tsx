@@ -38,6 +38,7 @@ export const UserManagementModule: React.FC = () => {
     adminResetPassword,
     refreshAccounts,
   } = useAuth();
+  const { schoolProfile } = useSiakadData();
 
   const isSuperAdmin = currentRole === 'superadmin';
 
@@ -161,8 +162,8 @@ export const UserManagementModule: React.FC = () => {
       email: newUserEmail.trim(),
       role: newUserRole,
       phone: newUserPhone.trim(),
-      schoolId: targetSchool ? targetSchool.id : undefined,
-      schoolName: targetSchool ? targetSchool.name : undefined,
+      schoolId: targetSchool ? targetSchool.id : (newUserRole === 'superadmin' ? undefined : 'sch-01'),
+      schoolName: targetSchool ? targetSchool.name : (newUserRole === 'superadmin' ? undefined : schoolProfile.name),
       status: 'active',
     });
 
@@ -525,7 +526,7 @@ export const UserManagementModule: React.FC = () => {
 
                         {isSuperAdmin && (
                           <td className="py-3 px-3 text-xs text-slate-600">
-                            {acc.schoolName || 'Global / Sistem'}
+                            {acc.role === 'superadmin' ? 'Global / Sistem' : (acc.schoolName || schoolProfile.name)}
                           </td>
                         )}
 

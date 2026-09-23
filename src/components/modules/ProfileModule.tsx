@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useSiakadData } from '../../context/SiakadDataContext';
 import {
   User as UserIcon,
   Lock,
@@ -22,6 +23,12 @@ export const ProfileModule: React.FC = () => {
     changeSelfUsername,
     changeSelfPassword,
   } = useAuth();
+  const { schoolProfile } = useSiakadData();
+
+  const displaySchoolName =
+    currentUser?.role === 'superadmin'
+      ? 'Pengawasan Global (Multi-Sekolah)'
+      : schoolProfile?.name || currentUser?.schoolName || 'SIAKAD Sekolah';
 
   // Profile Form State
   const [name, setName] = useState(currentUser?.name || '');
@@ -145,9 +152,9 @@ export const ProfileModule: React.FC = () => {
             <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
               <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700">@{currentUser?.username}</span>
               <span>•</span>
-              <span className="flex items-center gap-1">
-                <School className="w-3.5 h-3.5 text-slate-400" />
-                {currentUser?.schoolName || 'SIAKAD Multi-Sekolah'}
+              <span className="flex items-center gap-1 font-medium text-teal-700">
+                <School className="w-3.5 h-3.5 text-teal-600" />
+                {displaySchoolName}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
@@ -188,6 +195,24 @@ export const ProfileModule: React.FC = () => {
               <span>{profileError}</span>
             </div>
           )}
+
+          {/* Synchronized School Data Indicator */}
+          <div className="mb-4 p-3 rounded-2xl bg-teal-50/70 border border-teal-200/80 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center flex-shrink-0">
+                <School className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold text-teal-700 uppercase tracking-wide">Pangkalan Data Sekolah</p>
+                <p className="text-xs font-bold text-slate-800 truncate">{displaySchoolName}</p>
+              </div>
+            </div>
+            {schoolProfile.npsn && (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white text-teal-800 border border-teal-200 flex-shrink-0">
+                NPSN: {schoolProfile.npsn}
+              </span>
+            )}
+          </div>
 
           <form onSubmit={handleUpdateProfile} className="space-y-4">
             <div>

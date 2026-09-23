@@ -25,6 +25,7 @@ interface AuthContextType {
   updateUserStatus: (userId: string, status: 'active' | 'blocked', reason?: string) => { success: boolean; message: string };
   deleteUserAccount: (userId: string) => { success: boolean; message: string };
   adminResetPassword: (userId: string, newPass: string) => { success: boolean; message: string };
+  syncSchoolName: (newSchoolName: string) => void;
   refreshAccounts: () => void;
   hasPermission: (permissionCode: string) => boolean;
 }
@@ -32,8 +33,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Helper to read current school name from persisted siakad_app_data if available
+  const getPersistedSchoolName = (): string | null => {
+    try {
+      const savedSiakad = localStorage.getItem('siakad_app_data');
+      if (savedSiakad) {
+        const parsed = JSON.parse(savedSiakad);
+        if (parsed?.schoolProfile?.name) {
+          return parsed.schoolProfile.name;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  };
+
   // 1. Persistent System Accounts
   const [accounts, setAccounts] = useState<UserAccount[]>(() => {
+    const activeSchoolName = getPersistedSchoolName();
     const saved = localStorage.getItem('siakad_system_accounts');
     if (saved) {
       try {
@@ -44,33 +62,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const defaultSuper = INITIAL_SYSTEM_ACCOUNTS.find((a) => a.username === 'tn.timbu');
           if (defaultSuper) parsed.unshift(defaultSuper);
         }
+        // Auto synchronize school name if active school name is known
+        if (activeSchoolName) {
+          return parsed.map((acc) =>
+            acc.role === 'superadmin' ? acc : { ...acc, schoolName: activeSchoolName }
+          );
+        }
         return parsed;
       } catch (e) {
         console.error('Failed to parse saved system accounts', e);
       }
+    }
+    if (activeSchoolName) {
+      return INITIAL_SYSTEM_ACCOUNTS.map((acc) =>
+        acc.role === 'superadmin' ? acc : { ...acc, schoolName: activeSchoolName }
+      );
     }
     return INITIAL_SYSTEM_ACCOUNTS;
   });
 
   // 2. Persistent Registered Schools
   const [schools, setSchools] = useState<SchoolEntity[]>(() => {
+    const activeSchoolName = getPersistedSchoolName();
     const saved = localStorage.getItem('siakad_system_schools');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (activeSchoolName && parsed?.[0]) {
+          parsed[0].name = activeSchoolName;
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse saved schools', e);
       }
+    }
+    if (activeSchoolName && INITIAL_SCHOOLS_LIST[0]) {
+      return [{ ...INITIAL_SCHOOLS_LIST[0], name: activeSchoolName }];
     }
     return INITIAL_SCHOOLS_LIST;
   });
 
   // 3. Current Authenticated User (null if logged out)
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const activeSchoolName = getPersistedSchoolName();
     const saved = localStorage.getItem('siakad_auth_user');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed: User = JSON.parse(saved);
+        if (parsed && parsed.role !== 'superadmin' && activeSchoolName) {
+          parsed.schoolName = activeSchoolName;
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse saved auth user', e);
       }
@@ -81,6 +123,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [selectedChildId, setSelectedChildId] = useState<string | null>(() => {
     return 'std-01'; // Default child for demo orangtua
   });
+
+  // Programmatic school name synchronizer across all non-superadmin accounts
+  const syncSchoolName = (newSchoolName: string) => {
+    if (!newSchoolName || !newSchoolName.trim()) return;
+    const cleanName = newSchoolName.trim();
+
+    // 1. Update currentUser if not superadmin
+    setCurrentUser((prev) => {
+      if (!prev) return null;
+      if (prev.role === 'superadmin') return prev;
+      return { ...prev, schoolName: cleanName };
+    });
+
+    // 2. Update all accounts
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.role === 'superadmin' ? acc : { ...acc, schoolName: cleanName }
+      )
+    );
+
+    // 3. Update schools entity
+    setSchools((prev) =>
+      prev.map((sch) =>
+        sch.id === 'sch-01' ? { ...sch, name: cleanName } : sch
+      )
+    );
+  };
+
+  // Listen to global school update event
+  useEffect(() => {
+    const handleSchoolUpdateEvent = (e: any) => {
+      if (e?.detail?.name) {
+        syncSchoolName(e.detail.name);
+      }
+    };
+    window.addEventListener('siakad_school_updated', handleSchoolUpdateEvent);
+    return () => {
+      window.removeEventListener('siakad_school_updated', handleSchoolUpdateEvent);
+    };
+  }, []);
 
   // Sync accounts to localStorage
   useEffect(() => {
@@ -489,6 +571,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserStatus,
         deleteUserAccount,
         adminResetPassword,
+        syncSchoolName,
         refreshAccounts,
         hasPermission,
       }}

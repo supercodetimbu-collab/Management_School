@@ -17,6 +17,7 @@ import {
   CalendarDays,
   ArrowUpRight,
   Zap,
+  School,
 } from 'lucide-react';
 
 interface GuruDashboardProps {
@@ -25,7 +26,7 @@ interface GuruDashboardProps {
 
 export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }) => {
   const { currentUser } = useAuth();
-  const { schedules, assignments, submissions, classes, students, announcements } = useSiakadData();
+  const { schedules, assignments, submissions, classes, students, announcements, schoolProfile } = useSiakadData();
 
   // Find teacher's schedules
   const mySchedules = schedules.filter(
@@ -92,12 +93,18 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
   return (
     <div className="space-y-6">
       {/* Teacher Greeting */}
-      <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-teal-700 to-teal-800 text-white p-6 sm:p-8 shadow-sm">
+      <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-teal-700 to-teal-800 text-white p-5 sm:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <span className="inline-block px-3 py-1 rounded-full bg-white/15 text-blue-100 text-xs font-semibold mb-2">
-              Tenaga Pendidik & Pengajar
-            </span>
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <span className="inline-block px-3 py-1 rounded-full bg-white/15 text-blue-100 text-xs font-semibold">
+                Tenaga Pendidik & Pengajar
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
+                <School className="w-3.5 h-3.5 text-white" />
+                <span>{schoolProfile.name}</span>
+              </span>
+            </div>
             <h1 className="text-xl sm:text-2xl font-black">
               Selamat Mengajar, {currentUser?.name || 'Bpk. Hendra Gunawan, M.Pd'} 👨‍🏫
             </h1>
@@ -108,7 +115,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
 
           <button
             onClick={() => setCurrentModule('attendance')}
-            className="px-4 py-2.5 rounded-xl bg-white text-teal-800 hover:bg-teal-50 font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer flex-shrink-0"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white text-teal-800 hover:bg-teal-50 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
           >
             <ClipboardCheck className="w-4 h-4 text-teal-600" />
             <span>Presensi Siswa Hari Ini</span>

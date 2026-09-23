@@ -16,6 +16,7 @@ import {
   FileSignature,
   Megaphone,
   ArrowRight,
+  School,
 } from 'lucide-react';
 
 interface OrangTuaDashboardProps {
@@ -24,7 +25,7 @@ interface OrangTuaDashboardProps {
 
 export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrentModule }) => {
   const { currentUser, selectedChildId, setSelectedChildId } = useAuth();
-  const { students, grades, studentAttendance, assignments, classes, announcements } = useSiakadData();
+  const { students, grades, studentAttendance, assignments, classes, announcements, schoolProfile } = useSiakadData();
 
   // Find linked children
   const linkedStudentIds = currentUser?.linkedStudentIds || ['std-01', 'std-03'];
@@ -57,26 +58,32 @@ export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrent
       <div className="rounded-3xl bg-gradient-to-r from-amber-700 via-amber-600 to-teal-700 text-white p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold mb-2">
-              Portal Wali Murid & Orang Tua
-            </span>
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">
+                Portal Wali Murid & Orang Tua
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/25 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
+                <School className="w-3.5 h-3.5 text-white" />
+                <span>{schoolProfile.name}</span>
+              </span>
+            </div>
             <h1 className="text-xl sm:text-2xl font-black">
               Selamat datang, {currentUser?.name || 'Bpk. Santoso Mulyo'} 👨‍👩‍👧
             </h1>
             <p className="text-amber-100 text-xs sm:text-sm mt-0.5">
-              Pantau perkembangan akademik, kehadiran, dan aktivitas ananda secara berkala.
+              Pantau perkembangan akademik, kehadiran, dan aktivitas ananda di {schoolProfile.name}.
             </p>
           </div>
 
           {/* Child Selector Tabs (Multi-children support) */}
           {myChildren.length > 1 && (
-            <div className="bg-black/20 p-1.5 rounded-2xl flex items-center gap-1.5 backdrop-blur-xs">
-              <span className="text-[11px] font-bold text-amber-200 px-2">Pilih Anak:</span>
+            <div className="bg-black/20 p-1.5 rounded-2xl flex items-center gap-1.5 backdrop-blur-xs w-full sm:w-auto overflow-x-auto">
+              <span className="text-[11px] font-bold text-amber-200 px-2 flex-shrink-0">Pilih Anak:</span>
               {myChildren.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setSelectedChildId(c.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex-shrink-0 ${
                     activeChild?.id === c.id
                       ? 'bg-white text-amber-900 shadow-xs'
                       : 'text-white hover:bg-white/10'
@@ -95,13 +102,13 @@ export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrent
         <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-black text-xl">
+              <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-black text-xl flex-shrink-0">
                 {activeChild.name.charAt(0)}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-slate-800">{activeChild.name}</h2>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base font-bold text-slate-800 truncate">{activeChild.name}</h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200/50">
                     Kelas {activeChild.className}
                   </span>
                 </div>
@@ -111,7 +118,7 @@ export const OrangTuaDashboard: React.FC<OrangTuaDashboardProps> = ({ setCurrent
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
               <div className="px-3.5 py-2 rounded-xl bg-teal-50 border border-teal-100 text-center">
                 <span className="text-[10px] text-teal-700 font-bold uppercase block">Rata-Rata Nilai</span>
                 <span className="text-lg font-black text-teal-900">{avgScore}</span>
