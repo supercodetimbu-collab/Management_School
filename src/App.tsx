@@ -40,6 +40,7 @@ import { SettingsModule } from './components/modules/SettingsModule';
 import { ProfileModule } from './components/modules/ProfileModule';
 import { UserManagementModule } from './components/modules/UserManagementModule';
 import { ChatModule } from './components/modules/ChatModule';
+import { ReportsModule } from './components/modules/ReportsModule';
 import { LiveToastNotification } from './components/common/LiveToastNotification';
 import { BottomChatToastNotification } from './components/common/BottomChatToastNotification';
 import { useSiakadData } from './context/SiakadDataContext';
@@ -116,9 +117,13 @@ const MainAppContent: React.FC = () => {
         return <SettingsModule />;
       case 'profile':
         return <ProfileModule />;
+      case 'reports':
+        return <ReportsModule />;
       case 'user_management':
       case 'schools':
         return <UserManagementModule />;
+      case 'integration_docs':
+        return <SettingsModule />;
       default:
         return renderDashboardByRole();
     }

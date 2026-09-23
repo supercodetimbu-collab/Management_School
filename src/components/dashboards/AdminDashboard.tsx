@@ -172,7 +172,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
       {/* Quick Action Buttons */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Aksi Cepat Admin</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
           <button
             onClick={() => setCurrentModule('students')}
             className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-teal-50 text-teal-800 hover:bg-teal-100 font-bold text-xs transition"
@@ -188,6 +188,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
             <span>+ Tambah Guru</span>
           </button>
           <button
+            onClick={() => setCurrentModule('reports')}
+            className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs transition"
+          >
+            <BarChart3 className="w-4 h-4 text-emerald-600" />
+            <span>Laporan Sekolah</span>
+          </button>
+          <button
             onClick={() => setCurrentModule('announcements')}
             className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-amber-50 text-amber-800 hover:bg-amber-100 font-bold text-xs transition"
           >
@@ -196,7 +203,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
           </button>
           <button
             onClick={() => setCurrentModule('schedules')}
-            className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-purple-50 text-purple-800 hover:bg-purple-100 font-bold text-xs transition"
+            className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-purple-50 text-purple-800 hover:bg-purple-100 font-bold text-xs transition col-span-2 sm:col-span-1"
           >
             <Clock className="w-4 h-4 text-purple-600" />
             <span>Kelola Jadwal</span>
