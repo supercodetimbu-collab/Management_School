@@ -826,21 +826,21 @@ export const ThemeCustomizerModule: React.FC = () => {
                 </div>
               </div>
 
-              {/* 5. Jarak Vertikal Kartu (Atas & Bawah) */}
+              {/* 5. Jarak Vertikal & Grid Kartu (Selaras Semua Arah) */}
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <MoveVertical className="w-4 h-4 text-teal-600" />
-                      <span>Pengaturan Jarak Kartu: Atas & Bawah (Card Spacing & Margins)</span>
+                      <span>Pengaturan Jarak Kartu: Selaras Vertikal & Grid (Unified Card Spacing)</span>
                     </label>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Atur jarak renggang vertikal antar kartu, margin atas-bawah, serta padding isi kartu. Bisa diatur hingga 0px (menempel rapat tanpa celah kosong).
+                      Atur jarak renggang antar kartu secara seragam dan selaras (vertikal, horizontal, dan grid antar kartu). Bisa diatur hingga 0px (semua kartu menempel rapat selaras tanpa celah atau sisa ruang kosong).
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-mono px-2.5 py-1 rounded-full font-bold bg-teal-50 text-teal-700 border border-teal-200">
-                      Jarak: {themeConfig.cardMarginBottom ?? 14}px ({themeConfig.cardSpacingY || 'normal'})
+                      Jarak: {themeConfig.cardMarginBottom ?? 14}px (Selaras)
                     </span>
                   </div>
                 </div>
@@ -860,7 +860,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                     className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                     title="Nolkan semua jarak kartu agar menempel rapat tanpa ruang sisa kosong"
                   >
-                    <span>⚡ Nolkan Jarak (0px Super Rapat)</span>
+                    <span>⚡ Nolkan Jarak (0px Selaras - Menempel Rapat)</span>
                   </button>
                   <button
                     type="button"
@@ -874,7 +874,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                     }
                     className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>🌱 Rapat Padat (6px)</span>
+                    <span>🌱 Rapat Padat (6px Selaras)</span>
                   </button>
                   <button
                     type="button"
@@ -888,20 +888,20 @@ export const ThemeCustomizerModule: React.FC = () => {
                     }
                     className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>⚖️ Standar (14px)</span>
+                    <span>⚖️ Standar (14px Selaras)</span>
                   </button>
                 </div>
 
                 {/* 5a. Preset Jarak Cepat */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-semibold text-slate-700 block">Pilihan Preset Jarak Cepat:</span>
+                  <span className="text-[11px] font-semibold text-slate-700 block">Pilihan Preset Jarak Cepat Selaras:</span>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     {[
-                      { id: 'ultra', label: 'Ultra (0px)', desc: 'Kartu menempel rapat, 0 celah kosong', gap: 0, top: 0, btm: 0, pad: 'ultra' },
-                      { id: 'compact', label: 'Kompak (6px)', desc: 'Hemat ruang layar, efisien padat', gap: 6, top: 0, btm: 6, pad: 'compact' },
-                      { id: 'normal', label: 'Standar (14px)', desc: 'Seimbang & proporsional harian', gap: 14, top: 0, btm: 14, pad: 'normal' },
-                      { id: 'relaxed', label: 'Renggang (22px)', desc: 'Lega & santai dibaca', gap: 22, top: 4, btm: 22, pad: 'normal' },
-                      { id: 'spacious', label: 'Lapang (32px)', desc: 'Gaya editorial ekstra luas', gap: 32, top: 8, btm: 32, pad: 'relaxed' },
+                      { id: 'ultra', label: 'Ultra (0px)', desc: 'Semua kartu menempel rapat, 0 celah kosong', gap: 0, top: 0, btm: 0, pad: 'ultra' },
+                      { id: 'compact', label: 'Kompak (6px)', desc: 'Hemat ruang layar, selaras efisien padat', gap: 6, top: 0, btm: 6, pad: 'compact' },
+                      { id: 'normal', label: 'Standar (14px)', desc: 'Seimbang & proporsional selaras di semua arah', gap: 14, top: 0, btm: 14, pad: 'normal' },
+                      { id: 'relaxed', label: 'Renggang (22px)', desc: 'Lega & santai dibaca', gap: 22, top: 0, btm: 22, pad: 'normal' },
+                      { id: 'spacious', label: 'Lapang (32px)', desc: 'Gaya editorial ekstra luas', gap: 32, top: 4, btm: 32, pad: 'relaxed' },
                     ].map((sp) => {
                       const isSelected =
                         (themeConfig.cardSpacingY === sp.id) ||
@@ -943,7 +943,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                   {/* Margin Bawah / Jarak Antar Kartu (Bisa Sampai 0px) */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-700">Jarak Vertikal Antar Kartu (Margin Bawah)</span>
+                      <span className="text-xs font-bold text-slate-700">Jarak Antar Kartu (Selaras Vertikal & Grid)</span>
                       <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
                         {themeConfig.cardMarginBottom ?? 14} px
                       </span>
@@ -957,7 +957,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         const spacingType: CardSpacingType =
-                          val <= 2 ? 'ultra' : val <= 8 ? 'compact' : val <= 18 ? 'normal' : val <= 26 ? 'relaxed' : 'spacious';
+                          val === 0 ? 'ultra' : val <= 8 ? 'compact' : val <= 18 ? 'normal' : val <= 26 ? 'relaxed' : 'spacious';
                         updateThemeConfig({
                           cardMarginBottom: val,
                           cardSpacingY: spacingType,
@@ -966,7 +966,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                       className="w-full accent-teal-600 cursor-pointer"
                     />
                     <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                      <span className="text-emerald-600 font-bold">0px (Menempel Rapat)</span>
+                      <span className="text-emerald-600 font-bold">0px (Menempel Rapat - Nol Ruang)</span>
                       <span>14px (Standar)</span>
                       <span>36px (Maksimal)</span>
                     </div>
@@ -975,7 +975,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                   {/* Margin Atas (Margin Top) */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-700">Margin Atas Kartu (Margin Top)</span>
+                      <span className="text-xs font-bold text-slate-700">Margin Atas Kartu Teratas (Hero Banner)</span>
                       <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
                         {themeConfig.cardMarginTop ?? 0} px
                       </span>
@@ -990,7 +990,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                       className="w-full accent-teal-600 cursor-pointer"
                     />
                     <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                      <span>0px (Rapat)</span>
+                      <span>0px (Rapat Sejajar)</span>
                       <span>12px</span>
                       <span>24px (Maksimal)</span>
                     </div>
@@ -1041,42 +1041,43 @@ export const ThemeCustomizerModule: React.FC = () => {
                 {/* Visual Inter-card Spacing Illustration Box */}
                 <div className="p-3.5 rounded-2xl bg-slate-100/80 border border-dashed border-slate-300 space-y-2">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold">
-                    <span>Ilustrasi Visual Jarak Kartu</span>
+                    <span>Ilustrasi Visual Jarak Kartu (Selaras)</span>
                     <span className="font-mono text-slate-700">
-                      Top: {themeConfig.cardMarginTop ?? 0}px • Bottom: {themeConfig.cardMarginBottom ?? 16}px
+                      Jarak Selaras: {themeConfig.cardMarginBottom ?? 14}px • Top: {themeConfig.cardMarginTop ?? 0}px
                     </span>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-0" style={{ display: 'flex', flexDirection: 'column', gap: `${themeConfig.cardMarginBottom ?? 14}px` }}>
                     {/* Simulated Card 1 */}
                     <div
                       className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between text-xs text-slate-700"
                       style={{
                         marginTop: `${themeConfig.cardMarginTop ?? 0}px`,
-                        marginBottom: `${Math.max(4, (themeConfig.cardMarginBottom ?? 16) / 2)}px`,
                       }}
                     >
-                      <span className="font-bold">Kartu Atas (Contoh Elemen)</span>
+                      <span className="font-bold">Kartu 1 (Contoh Elemen)</span>
                       <span className="text-[10px] text-slate-400">Card 1</span>
                     </div>
 
-                    {/* Gap indicator line */}
-                    <div className="flex items-center justify-center py-0.5">
-                      <div className="w-full border-t border-dashed border-teal-500/50 relative">
-                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-teal-600 text-white font-mono text-[9px] px-2 py-0.5 rounded-full shadow-2xs">
-                          Jarak Antar Kartu: {themeConfig.cardMarginBottom ?? 16}px
+                    {/* Gap indicator tag if gap > 0 */}
+                    {(themeConfig.cardMarginBottom ?? 14) > 0 ? (
+                      <div className="flex items-center justify-center -my-1">
+                        <span className="bg-teal-600 text-white font-mono text-[9px] px-2 py-0.5 rounded-full shadow-2xs">
+                          Jarak Selaras: {themeConfig.cardMarginBottom ?? 14}px
                         </span>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="text-center">
+                        <span className="bg-emerald-600 text-white font-mono text-[9px] px-2 py-0.5 rounded-full shadow-2xs">
+                          0px (Menempel Rapat Tanpa Celah)
+                        </span>
+                      </div>
+                    )}
 
                     {/* Simulated Card 2 */}
                     <div
                       className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between text-xs text-slate-700"
-                      style={{
-                        marginTop: `${Math.max(4, (themeConfig.cardMarginBottom ?? 16) / 2)}px`,
-                        marginBottom: `${themeConfig.cardMarginBottom ?? 16}px`,
-                      }}
                     >
-                      <span className="font-bold">Kartu Bawah (Contoh Elemen)</span>
+                      <span className="font-bold">Kartu 2 (Contoh Elemen)</span>
                       <span className="text-[10px] text-slate-400">Card 2</span>
                     </div>
                   </div>
@@ -1877,8 +1878,9 @@ export const ThemeCustomizerModule: React.FC = () => {
 
                   {/* 2 Mini Metric Stats Cards */}
                   <div
-                    className="grid grid-cols-2 gap-1.5 shrink-0"
+                    className="grid grid-cols-2 shrink-0"
                     style={{
+                      gap: `${themeConfig.cardMarginBottom ?? 14}px`,
                       marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
                     }}
                   >
@@ -1936,7 +1938,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                   <div
                     className="flex items-center justify-center gap-1.5 pt-0.5 shrink-0"
                     style={{
-                      marginBottom: `${Math.min(themeConfig.cardMarginBottom ?? 14, 6)}px`,
+                      marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
                     }}
                   >
                     <button
@@ -2031,15 +2033,14 @@ export const ThemeCustomizerModule: React.FC = () => {
                   </div>
 
                   {/* Main Desktop Content Pane */}
-                  <div className="flex-1 p-2 space-y-2 overflow-hidden flex flex-col justify-between">
-                    <div className="space-y-1.5">
+                  <div className="flex-1 p-2 overflow-hidden flex flex-col justify-between">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: `${themeConfig.cardMarginBottom ?? 14}px` }}>
                       {/* Hero Banner */}
                       <div
                         className="theme-hero-banner p-2 text-white shadow-2xs rounded-lg flex items-center justify-between"
                         style={{
                           background: `linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%)`,
                           marginTop: `${themeConfig.cardMarginTop ?? 0}px`,
-                          marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
                         }}
                       >
                         <div className="min-w-0">
@@ -2050,7 +2051,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                       </div>
 
                       {/* 2 Cards side by side */}
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <div className="grid grid-cols-2" style={{ gap: `${themeConfig.cardMarginBottom ?? 14}px` }}>
                         <div className="theme-card p-1.5 space-y-0.5">
                           <span className="text-[8px] text-slate-500 block">Total Siswa</span>
                           <span className="text-xs font-black text-slate-800">1,248</span>
@@ -2092,7 +2093,7 @@ export const ThemeCustomizerModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Jarak Kartu:</span>
                 <span className="font-mono font-bold text-emerald-700 text-[10px] truncate ml-1">
-                  {themeConfig.cardMarginBottom ?? 14}px ({themeConfig.cardSpacingY || 'normal'})
+                  {themeConfig.cardMarginBottom ?? 14}px (Selaras Semua Arah)
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -2238,8 +2239,9 @@ export const ThemeCustomizerModule: React.FC = () => {
 
                 {/* 2 Mini Metric Stats Cards */}
                 <div
-                  className="grid grid-cols-2 gap-1.5 shrink-0"
+                  className="grid grid-cols-2 shrink-0"
                   style={{
+                    gap: `${themeConfig.cardMarginBottom ?? 14}px`,
                     marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
                   }}
                 >
@@ -2257,7 +2259,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                 <div
                   className="flex items-center justify-center gap-1.5 pt-0.5 shrink-0"
                   style={{
-                    marginBottom: `${Math.min(themeConfig.cardMarginBottom ?? 14, 6)}px`,
+                    marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
                   }}
                 >
                   <button

@@ -595,7 +595,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Card Spacing Y Mapping - Support ultra (0-2px), compact (6px), normal (14px), relaxed (22px), spacious (32px)
     const spacingYMap: Record<string, string> = {
-      ultra: '2px',
+      ultra: '0px',
       compact: '6px',
       normal: '14px',
       relaxed: '22px',
@@ -611,12 +611,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const cardMarginBottom = typeof themeConfig.cardMarginBottom === 'number' ? `${themeConfig.cardMarginBottom}px` : '14px';
 
     const paddingYMap: Record<string, string> = {
-      ultra: '0.45rem',
-      compact: '0.75rem',
-      normal: '1.25rem',
-      relaxed: '1.75rem',
+      ultra: '0.35rem',
+      compact: '0.65rem',
+      normal: '1.15rem',
+      relaxed: '1.65rem',
     };
-    const cardPaddingY = paddingYMap[themeConfig.cardPaddingY || 'normal'] || '1.25rem';
+    const cardPaddingY = paddingYMap[themeConfig.cardPaddingY || 'normal'] || '1.15rem';
 
     // Density mapping
     let densityCss = '';
@@ -656,19 +656,23 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       /* Dynamic Hero/Greeting Banners across ALL roles (Admin, Guru, Siswa, Ortu, Kepsek) */
       main .rounded-3xl[class*="from-"],
+      main [class*="bg-gradient"][class*="rounded-"],
       .theme-hero-banner {
         background: linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%) !important;
         border-radius: var(--theme-card-radius) !important;
         box-shadow: var(--theme-card-shadow) !important;
         margin-top: var(--theme-card-margin-top) !important;
-        margin-bottom: var(--theme-card-spacing-y) !important;
+        margin-bottom: 0px !important;
+        padding-top: max(0.6rem, var(--theme-card-padding-y)) !important;
+        padding-bottom: max(0.6rem, var(--theme-card-padding-y)) !important;
       }
 
       /* Dynamically Adapt Core Cards across all modules and dashboards */
       .theme-card,
       main .bg-white.rounded-2xl,
       main .bg-white.rounded-3xl,
-      main .bg-white.rounded-xl {
+      main .bg-white.rounded-xl,
+      main .bg-white[class*="rounded-"] {
         border-radius: var(--theme-card-radius) !important;
         box-shadow: var(--theme-card-shadow) !important;
         ${cardBgCss}
@@ -678,18 +682,28 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Vertical card spacing across lists and grids - direct single source of truth */
-      main .space-y-6 > * + * {
-        margin-top: var(--theme-card-spacing-y) !important;
-      }
-      main .space-y-5 > * + * {
-        margin-top: var(--theme-card-spacing-y) !important;
-      }
+      /* Single Source of Truth: 100% Selaras (Uniform) Card Spacing across ALL vertical lists & containers */
+      main .space-y-8 > * + *,
+      main .space-y-6 > * + *,
+      main .space-y-5 > * + *,
       main .space-y-4 > * + * {
-        margin-top: calc(var(--theme-card-spacing-y) * 0.8) !important;
+        margin-top: var(--theme-card-spacing-y) !important;
       }
-      main .grid {
+
+      /* Single Source of Truth: 100% Selaras (Uniform) Card Spacing across ALL card grids (both horizontal and vertical) */
+      main .space-y-8 > .grid,
+      main .space-y-6 > .grid,
+      main .space-y-5 > .grid,
+      main .space-y-4 > .grid,
+      main > div > .grid,
+      main > div > div > .grid,
+      main .grid:has(> .theme-card),
+      main .grid:has(> .rounded-2xl),
+      main .grid:has(> .rounded-3xl),
+      main .grid:has(> .rounded-xl) {
+        gap: var(--theme-card-spacing-y) !important;
         row-gap: var(--theme-card-spacing-y) !important;
+        column-gap: var(--theme-card-spacing-y) !important;
       }
 
       /* Card Header Accent Stripe */
