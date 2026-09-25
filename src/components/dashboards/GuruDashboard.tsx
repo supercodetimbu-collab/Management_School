@@ -228,122 +228,99 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         </div>
       </div>
 
-      {/* Quick Action Buttons for Teacher - Professional, Polished, Proportional */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100/80">
-              <Zap className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Aksi Cepat Pembelajaran</h3>
-              <p className="text-[11px] text-slate-400 font-medium hidden sm:block">
-                Pintasan langsung ke aktivitas utama pengajaran & administrasi guru
-              </p>
+      {/* Quick Action Cards for Teacher - Synchronized 1:1 with Dashboard Card Layout & Spacing */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+        {/* Action 1: Presensi Siswa */}
+        <button
+          type="button"
+          onClick={() => setCurrentModule('attendance')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Presensi Harian</span>
+            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <ClipboardCheck className="w-5 h-5" />
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/50">
-            Pintasan Guru
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Action 1: Presensi Siswa */}
-          <button
-            type="button"
-            onClick={() => setCurrentModule('attendance')}
-            className="group text-left p-3.5 sm:p-4 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-teal-400 hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-100/70 text-teal-700 group-hover:bg-teal-600 group-hover:text-white flex items-center justify-center transition-colors flex-shrink-0">
-                <ClipboardCheck className="w-5 h-5" />
-              </div>
-              <div className="w-6 h-6 rounded-lg bg-white sm:bg-slate-100 text-slate-400 group-hover:bg-teal-50 group-hover:text-teal-600 flex items-center justify-center transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shadow-2xs sm:shadow-none">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-teal-700 transition-colors">
+          <div>
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-sm sm:text-base font-black text-slate-800 tracking-tight group-hover:text-teal-700 transition">
                 Presensi Siswa
-              </h4>
-              <p className="text-[11px] text-slate-500 font-medium mt-0.5 line-clamp-1">
-                Catat kehadiran harian kelas
-              </p>
+              </span>
+              <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-teal-600 transition" />
             </div>
-          </button>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Catat kehadiran kelas</p>
+          </div>
+        </button>
 
-          {/* Action 2: Input Nilai */}
-          <button
-            type="button"
-            onClick={() => setCurrentModule('grades')}
-            className="group text-left p-3.5 sm:p-4 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-700 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-colors flex-shrink-0">
-                <Award className="w-5 h-5" />
-              </div>
-              <div className="w-6 h-6 rounded-lg bg-white sm:bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shadow-2xs sm:shadow-none">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
+        {/* Action 2: Input Nilai Siswa */}
+        <button
+          type="button"
+          onClick={() => setCurrentModule('grades')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Penilaian</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <Award className="w-5 h-5" />
             </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-sm sm:text-base font-black text-slate-800 tracking-tight group-hover:text-blue-700 transition">
                 Input Nilai Siswa
-              </h4>
-              <p className="text-[11px] text-slate-500 font-medium mt-0.5 line-clamp-1">
-                Kelola nilai harian & ujian
-              </p>
+              </span>
+              <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition" />
             </div>
-          </button>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Kelola nilai harian & ujian</p>
+          </div>
+        </button>
 
-          {/* Action 3: Buat Tugas Baru */}
-          <button
-            type="button"
-            onClick={() => setCurrentModule('assignments')}
-            className="group text-left p-3.5 sm:p-4 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-amber-400 hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-100/70 text-amber-700 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center transition-colors flex-shrink-0">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div className="w-6 h-6 rounded-lg bg-white sm:bg-slate-100 text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-600 flex items-center justify-center transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shadow-2xs sm:shadow-none">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
+        {/* Action 3: Buat Tugas Baru */}
+        <button
+          type="button"
+          onClick={() => setCurrentModule('assignments')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Penugasan</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <FileText className="w-5 h-5" />
             </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-amber-700 transition-colors">
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-sm sm:text-base font-black text-slate-800 tracking-tight group-hover:text-purple-700 transition">
                 Buat Tugas Baru
-              </h4>
-              <p className="text-[11px] text-slate-500 font-medium mt-0.5 line-clamp-1">
-                Unggah penugasan & materi
-              </p>
+              </span>
+              <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 transition" />
             </div>
-          </button>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Unggah materi pembelajaran</p>
+          </div>
+        </button>
 
-          {/* Action 4: Raport Wali Kelas */}
-          <button
-            type="button"
-            onClick={() => setCurrentModule('report_cards')}
-            className="group text-left p-3.5 sm:p-4 rounded-2xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-purple-400 hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100/70 text-purple-700 group-hover:bg-purple-600 group-hover:text-white flex items-center justify-center transition-colors flex-shrink-0">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <div className="w-6 h-6 rounded-lg bg-white sm:bg-slate-100 text-slate-400 group-hover:bg-purple-50 group-hover:text-purple-600 flex items-center justify-center transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shadow-2xs sm:shadow-none">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
+        {/* Action 4: Raport Wali Kelas */}
+        <button
+          type="button"
+          onClick={() => setCurrentModule('report_cards')}
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Wali Kelas</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+              <BookOpen className="w-5 h-5" />
             </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-purple-700 transition-colors">
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-sm sm:text-base font-black text-slate-800 tracking-tight group-hover:text-amber-700 transition">
                 Raport Wali Kelas
-              </h4>
-              <p className="text-[11px] text-slate-500 font-medium mt-0.5 line-clamp-1">
-                Leger capaian & cetak nilai
-              </p>
+              </span>
+              <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 transition" />
             </div>
-          </button>
-        </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Leger capaian & cetak nilai</p>
+          </div>
+        </button>
       </div>
 
       {/* Today's Teaching Schedule & Pending Submissions */}
