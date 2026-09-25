@@ -231,86 +231,90 @@ export const ThemeCustomizerModule: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Top Banner & Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs relative overflow-hidden">
+    <div className="space-y-4 max-w-7xl mx-auto pb-6">
+      {/* Top Banner & Header - Compact & Sticky Compatible */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs relative overflow-hidden">
         <div
           className="absolute -right-16 -top-16 w-56 h-56 rounded-full opacity-10 pointer-events-none blur-2xl"
           style={{ backgroundColor: themeConfig.primaryColor }}
         />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-start sm:items-center gap-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
+          <div className="flex items-center gap-3">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md transition-colors"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm transition-colors"
               style={{ backgroundColor: themeConfig.primaryColor }}
             >
-              <Palette className="w-6 h-6" />
+              <Palette className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+                <h1 className="text-base sm:text-lg font-bold text-slate-800">
                   Kustomisasi Tema, Warna & Tampilan
                 </h1>
                 <span
-                  className="px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shadow-2xs"
+                  className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-2xs"
                   style={{ backgroundColor: themeConfig.primaryColor }}
                 >
                   {themeConfig.preset === 'custom' ? 'Kustom Manual' : activePresetInfo?.name || themeConfig.preset}
                 </span>
                 {isDirty && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
                     Belum Disimpan
                   </span>
                 )}
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Cloud Sync Aktif (Guru, Murid, Ortu, Kepsek)
+                </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-                Sesuaikan seluruh tampilan aplikasi SIAKAD: palet warna institusi, kelengkungan kartu, bayangan, model latar, dan bilah navigasi secara langsung.
+              <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                Kustomisasi warna tema institusi, bentuk & jarak kartu atas-bawah, dan bilah menu ikon bawah.
               </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap self-end md:self-center">
+          <div className="flex items-center gap-2 flex-wrap self-end md:self-center shrink-0">
             <button
               onClick={() => {
                 setJsonInput(exportThemeJSON());
                 setShowJsonModal(true);
               }}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer"
               title="Ekspor atau Impor konfigurasi tema JSON"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>JSON Tema</span>
+              <span>JSON</span>
             </button>
 
             <button
               onClick={handleReset}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition flex items-center gap-1.5 cursor-pointer"
               title="Reset ke tema bawaan SIAKAD"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Bawaan</span>
+              <span>Reset</span>
             </button>
 
             <button
               onClick={handleSave}
               disabled={isSavingToCloud}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm transition flex items-center gap-2 transform active:scale-95 cursor-pointer disabled:opacity-75"
+              className="px-4 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs transition flex items-center gap-1.5 transform active:scale-95 cursor-pointer disabled:opacity-75"
               style={{ backgroundColor: themeConfig.primaryColor }}
             >
               {isSavingToCloud ? (
                 <>
-                  <RotateCw className="w-4 h-4 animate-spin text-white" />
+                  <RotateCw className="w-3.5 h-3.5 animate-spin text-white" />
                   <span>Menyinkronkan...</span>
                 </>
               ) : saveSuccess ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                   <span>Tersinkronisasi!</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 text-white" />
+                  <Save className="w-3.5 h-3.5 text-white" />
                   <span>Simpan & Sinkronkan</span>
                 </>
               )}
@@ -318,30 +322,12 @@ export const ThemeCustomizerModule: React.FC = () => {
           </div>
         </div>
 
-        {/* Cloud Synchronization Status Indicator */}
-        <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Sinkronisasi Otomatis: Aktif untuk Guru, Murid, Ortu & Kepsek
-            </span>
-            {lastSyncedAt && (
-              <span className="text-slate-400 text-[11px]">
-                Sinkron terakhir: {lastSyncedAt}
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-slate-500">
-            Setiap perubahan tema tersimpan di cloud Firestore & langsung diterapkan ke seluruh pengguna.
-          </p>
-        </div>
-
         {/* Unsaved Feedback Banner */}
         {isDirty && (
-          <div className="mt-3 p-3 rounded-2xl bg-amber-50/90 border border-amber-200 flex items-center justify-between text-xs text-amber-800">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>Perubahan tema belum disinkronkan ke cloud. Klik <strong>Simpan & Sinkronkan</strong> agar akun Guru, Murid, Ortu, dan Kepsek ikut berubah.</span>
+          <div className="mt-2.5 p-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between text-[11px] text-amber-800">
+            <div className="flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>Perubahan belum disinkronkan ke cloud. Klik <strong>Simpan & Sinkronkan</strong> agar akun Guru, Murid, Ortu, dan Kepsek ikut berubah.</span>
             </div>
             <button
               onClick={handleSave}
@@ -354,9 +340,9 @@ export const ThemeCustomizerModule: React.FC = () => {
       </div>
 
       {/* Main Grid: Left Controls (Tabs) & Right Live Interactive Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Customization Controls (7 Columns) */}
-        <div className="lg:col-span-7 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Column: Customization Controls with Independent Smooth Scrolling */}
+        <div className="lg:col-span-7 space-y-4 lg:max-h-[calc(100vh-9.5rem)] lg:overflow-y-auto lg:pr-2.5 sidebar-scroll">
           {/* Navigation Category Tabs */}
           <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl overflow-x-auto no-scrollbar border border-slate-200/70">
             <button
@@ -1642,59 +1628,69 @@ export const ThemeCustomizerModule: React.FC = () => {
           )}
         </div>
 
-        {/* Right Column: Live Simulator & Interactive Preview (5 Columns - Sticky) */}
-        <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-20">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
+        {/* Right Column: Live Simulator & Interactive Preview (5 Columns - Sticky & Locked) */}
+        <div className="lg:col-span-5 lg:sticky lg:top-0 z-20 space-y-2.5">
+          <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-3.5 shadow-sm space-y-2.5">
             {/* Preview Toolbar */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-1.5">
                 <Eye className="w-4 h-4 text-teal-600" />
-                <span className="text-xs font-bold text-slate-800">Pratinjau Langsung (Live Preview)</span>
+                <span className="text-xs font-bold text-slate-800">Pratinjau Langsung</span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[9px] border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live
+                </span>
               </div>
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('desktop')}
-                  className={`p-1.5 rounded-lg text-xs transition ${
-                    previewDevice === 'desktop' ? 'bg-white shadow-2xs text-slate-800' : 'text-slate-500'
+                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 ${
+                    previewDevice === 'desktop' ? 'bg-white shadow-2xs text-slate-800' : 'text-slate-500 hover:text-slate-800'
                   }`}
                   title="Pratinjau Layar Desktop"
                 >
                   <Monitor className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Desktop</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('mobile')}
-                  className={`p-1.5 rounded-lg text-xs transition ${
-                    previewDevice === 'mobile' ? 'bg-white shadow-2xs text-slate-800' : 'text-slate-500'
+                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 ${
+                    previewDevice === 'mobile' ? 'bg-white shadow-2xs text-slate-800' : 'text-slate-500 hover:text-slate-800'
                   }`}
                   title="Pratinjau Layar HP / Mobile"
                 >
                   <Smartphone className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Mobile</span>
                 </button>
               </div>
             </div>
 
-            {/* Simulated Canvas Box */}
-            <div
-              className={`p-4 border border-slate-200 transition-all duration-300 overflow-hidden ${
-                previewDevice === 'mobile' ? 'max-w-[340px] mx-auto rounded-[36px] shadow-lg ring-4 ring-slate-800/10' : 'w-full rounded-2xl'
-              }`}
-              style={{
-                backgroundColor:
-                  themeConfig.backgroundStyle === 'warm-cream'
-                    ? '#faf7f2'
-                    : themeConfig.backgroundStyle === 'cool-gray'
-                    ? '#f1f5f9'
-                    : themeConfig.backgroundStyle === 'midnight-dark'
-                    ? '#0f172a'
-                    : '#f8fafc',
-              }}
-            >
-              <div className="space-y-3.5">
-                {/* Simulated Header */}
+            {/* Simulated Canvas Box - Exactly Fitted (No Naik-Turun Needed!) */}
+            {previewDevice === 'mobile' ? (
+              <div
+                className="w-full max-w-[310px] mx-auto rounded-[28px] border-[4px] border-slate-800 shadow-xl overflow-hidden flex flex-col h-[385px] bg-slate-50 transition-all duration-200 relative"
+                style={{
+                  backgroundColor:
+                    themeConfig.backgroundStyle === 'warm-cream'
+                      ? '#faf7f2'
+                      : themeConfig.backgroundStyle === 'cool-gray'
+                      ? '#f1f5f9'
+                      : themeConfig.backgroundStyle === 'midnight-dark'
+                      ? '#0f172a'
+                      : '#f8fafc',
+                }}
+              >
+                {/* Smartphone Notch */}
+                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-3 bg-slate-800 rounded-full z-30 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-900 border border-slate-700/60 mr-1.5" />
+                  <div className="w-6 h-0.5 rounded-full bg-slate-700" />
+                </div>
+
+                {/* Mobile Header */}
                 <div
-                  className="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs transition"
+                  className="pt-4 px-3 pb-1.5 border-b border-slate-200/70 flex items-center justify-between text-xs z-20 shrink-0"
                   style={{
                     backgroundColor:
                       themeConfig.headerStyle === 'dark-slate'
@@ -1705,169 +1701,242 @@ export const ThemeCustomizerModule: React.FC = () => {
                     color: themeConfig.headerStyle === 'dark-slate' ? '#ffffff' : '#1e293b',
                   }}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <div
-                      className="w-6 h-6 rounded-lg text-white flex items-center justify-center text-xs font-bold shrink-0"
+                      className="w-5 h-5 rounded-md text-white flex items-center justify-center text-[10px] font-bold shrink-0"
                       style={{ backgroundColor: themeConfig.primaryColor }}
                     >
-                      <School className="w-3.5 h-3.5" />
+                      <School className="w-3 h-3" />
                     </div>
-                    <span className="text-xs font-bold truncate">SIAKAD SEKOLAH</span>
+                    <span className="text-[11px] font-bold truncate">SIAKAD SEKOLAH</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="w-2 h-2 rounded-full animate-ping"
-                      style={{ backgroundColor: themeConfig.accentColor }}
-                    />
-                    <span className="text-[10px] font-semibold text-slate-500">Live</span>
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: themeConfig.accentColor }} />
+                    <span className="text-[9px] font-semibold text-slate-500">Live</span>
                   </div>
                 </div>
 
-                {/* Simulated Identity Card with Custom Theme */}
-                <div className="theme-card p-4 space-y-3 transition">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm"
-                      style={{ backgroundColor: themeConfig.primaryColor }}
-                    >
-                      <GraduationCap className="w-5 h-5" />
+                {/* Mobile Screen Body Content */}
+                <div className="flex-1 p-2 space-y-1.5 overflow-y-auto no-scrollbar">
+                  {/* Dynamic Greeting Hero Banner */}
+                  <div
+                    className="theme-hero-banner p-2 rounded-xl text-white shadow-2xs flex items-center justify-between transition-all"
+                    style={{
+                      background: `linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%)`,
+                      marginTop: `${Math.min(6, themeConfig.cardMarginTop ?? 0)}px`,
+                      marginBottom: `${Math.min(8, themeConfig.cardMarginBottom ?? 16)}px`,
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[8px] text-white/80 font-medium leading-none">Selamat Datang,</p>
+                      <h4 className="text-[11px] font-extrabold truncate mt-0.5">Akun SIAKAD</h4>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-bold text-slate-800 truncate">{schoolProfile.name}</h4>
-                      <p className="text-[10px] text-slate-500">NPSN: {schoolProfile.npsn} • Akreditasi {schoolProfile.accreditation}</p>
-                    </div>
-                    <span
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-2xs"
-                      style={{ backgroundColor: themeConfig.primaryColor }}
-                    >
-                      Aktif
+                    <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[8px] font-bold shrink-0">
+                      {themeConfig.preset === 'custom' ? 'Kustom' : activePresetInfo?.badge || themeConfig.preset}
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
-                    <span>Tahun Ajaran Aktif</span>
-                    <span className="font-semibold text-slate-800">2024/2025 Genap</span>
-                  </div>
-                </div>
-
-                {/* Mini Stat Metric Cards */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="theme-card p-3 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-medium">Total Siswa</span>
-                      <Users className="w-3.5 h-3.5" style={{ color: themeConfig.primaryColor }} />
+                  {/* Core Theme Card (Identity) */}
+                  <div
+                    className="theme-card p-2 transition text-xs"
+                    style={{
+                      marginTop: `${Math.min(6, themeConfig.cardMarginTop ?? 0)}px`,
+                      marginBottom: `${Math.min(8, themeConfig.cardMarginBottom ?? 16)}px`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-7 h-7 rounded-lg text-white flex items-center justify-center font-bold text-xs shrink-0"
+                        style={{ backgroundColor: themeConfig.primaryColor }}
+                      >
+                        <GraduationCap className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h5 className="text-[10px] font-bold text-slate-800 truncate">{schoolProfile.name}</h5>
+                        <p className="text-[8px] text-slate-500 truncate">Akreditasi {schoolProfile.accreditation || 'A'} • 2024/2025</p>
+                      </div>
+                      <span
+                        className="px-1.5 py-0.5 rounded-full text-[8px] font-bold text-white shrink-0"
+                        style={{ backgroundColor: themeConfig.primaryColor }}
+                      >
+                        Aktif
+                      </span>
                     </div>
-                    <p className="text-base font-extrabold text-slate-800">1,248</p>
-                    <span className="text-[9px] text-emerald-600 font-semibold">↑ 100% Aktif</span>
                   </div>
 
-                  <div className="theme-card p-3 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 font-medium">Kehadiran</span>
-                      <Award className="w-3.5 h-3.5" style={{ color: themeConfig.accentColor }} />
+                  {/* 2 Mini Metric Stats Cards */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="theme-card p-1.5 text-center">
+                      <span className="text-[8px] text-slate-500 block leading-tight">Total Siswa</span>
+                      <span className="text-xs font-black text-slate-800">1,248</span>
                     </div>
-                    <p className="text-base font-extrabold text-slate-800">98.4%</p>
-                    <span className="text-[9px] text-slate-500">Presensi Hari Ini</span>
+                    <div className="theme-card p-1.5 text-center">
+                      <span className="text-[8px] text-slate-500 block leading-tight">Kehadiran</span>
+                      <span className="text-xs font-black" style={{ color: themeConfig.primaryColor }}>98.4%</span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Simulated Interactive Elements: Buttons & Badges */}
-                <div className="theme-card p-3.5 space-y-2.5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Contoh Tombol & Kontrol</span>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  {/* Interactive Button Preview */}
+                  <div className="flex items-center justify-center gap-1.5 pt-0.5">
                     <button
                       type="button"
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs transition"
+                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-white shadow-2xs"
                       style={{ backgroundColor: themeConfig.primaryColor }}
                     >
                       Tombol Utama
                     </button>
-                    <button
-                      type="button"
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
-                    >
-                      Sekunder
-                    </button>
                     <span
-                      className="px-2.5 py-1 rounded-full text-[10px] font-bold border"
+                      className="px-2 py-0.5 rounded-full text-[9px] font-bold border"
                       style={{
                         borderColor: `${themeConfig.primaryColor}55`,
                         backgroundColor: `${themeConfig.primaryColor}15`,
                         color: themeConfig.primaryColor,
                       }}
                     >
-                      Badge Aksen
+                      Aksen
                     </span>
-                  </div>
-
-                  {/* Simulated Input */}
-                  <div className="relative mt-2">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      disabled
-                      placeholder="Cari siswa atau modul..."
-                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 pointer-events-none"
-                    />
                   </div>
                 </div>
 
-                {/* Simulated Interactive Bottom Navigation Bar */}
-                <div className="pt-2 border-t border-slate-200/70 mt-3 space-y-1">
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold px-1">
-                    <span className="flex items-center gap-1">
-                      <Navigation className="w-3 h-3 text-teal-600" />
-                      <span>Bilah Menu Bawah (Live Preview)</span>
-                    </span>
-                    <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-semibold">
-                      Gaya: {themeConfig.bottomNav?.style || 'classic'}
-                    </span>
-                  </div>
+                {/* Interactive Bottom Navigation Bar - Pinned at bottom of the phone screen */}
+                <div className="shrink-0 z-20 border-t border-slate-200/50">
                   <BottomNavigation
                     currentModule={simulatedCurrentModule}
                     setCurrentModule={setSimulatedCurrentModule}
                     onOpenMobileMenu={() => {}}
                     isSimulatedPreview={true}
                   />
-                  <p className="text-[9px] text-center text-slate-400">
-                    Klik ikon menu di atas untuk menguji animasi & tampilan aktif
-                  </p>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div
+                className="w-full rounded-xl border border-slate-300 shadow-md overflow-hidden flex flex-col h-[385px] bg-slate-50 transition-all duration-200 relative"
+                style={{
+                  backgroundColor:
+                    themeConfig.backgroundStyle === 'warm-cream'
+                      ? '#faf7f2'
+                      : themeConfig.backgroundStyle === 'cool-gray'
+                      ? '#f1f5f9'
+                      : themeConfig.backgroundStyle === 'midnight-dark'
+                      ? '#0f172a'
+                      : '#f8fafc',
+                }}
+              >
+                {/* Desktop Window Titlebar */}
+                <div className="bg-slate-200/90 border-b border-slate-300/70 px-2.5 py-1.5 flex items-center justify-between text-xs shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-400" />
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="text-[9px] text-slate-500 font-mono ml-2">siakad.sekolah.sch.id</span>
+                  </div>
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-white text-slate-600">Desktop View</span>
+                </div>
 
-            {/* Quick Summary of Current Active Styles */}
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-xs text-slate-600">
+                {/* Desktop Screen Body */}
+                <div className="flex-1 flex overflow-hidden">
+                  {/* Mini Sidebar */}
+                  <div
+                    className="w-14 border-r border-slate-200/70 p-1.5 flex flex-col items-center gap-1.5 shrink-0 transition"
+                    style={{
+                      backgroundColor:
+                        themeConfig.sidebarStyle === 'dark-navy'
+                          ? '#0f172a'
+                          : themeConfig.sidebarStyle === 'primary-gradient'
+                          ? themeConfig.primaryColor
+                          : '#ffffff',
+                      color:
+                        themeConfig.sidebarStyle === 'dark-navy' || themeConfig.sidebarStyle === 'primary-gradient'
+                          ? '#ffffff'
+                          : '#334155',
+                    }}
+                  >
+                    <div
+                      className="w-5 h-5 rounded-md text-white flex items-center justify-center font-bold text-[10px] shadow-2xs"
+                      style={{ backgroundColor: themeConfig.primaryColor }}
+                    >
+                      <School className="w-3 h-3" />
+                    </div>
+                    <div className="w-6 h-0.5 rounded-full bg-slate-300/60 my-0.5" />
+                    <div className="w-6 h-4 rounded bg-teal-500/20 flex items-center justify-center text-[9px] font-bold">
+                      <LayoutDashboard className="w-3 h-3 text-teal-600" />
+                    </div>
+                    <div className="w-6 h-4 rounded flex items-center justify-center text-[9px] opacity-60">
+                      <Award className="w-3 h-3" />
+                    </div>
+                    <div className="w-6 h-4 rounded flex items-center justify-center text-[9px] opacity-60">
+                      <Clock className="w-3 h-3" />
+                    </div>
+                  </div>
+
+                  {/* Main Desktop Content Pane */}
+                  <div className="flex-1 p-2 space-y-2 overflow-y-auto no-scrollbar flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      {/* Hero Banner */}
+                      <div
+                        className="theme-hero-banner p-2 text-white shadow-2xs rounded-lg flex items-center justify-between"
+                        style={{
+                          background: `linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%)`,
+                        }}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-[8px] text-white/80">Dashboard Akademik</p>
+                          <h4 className="text-[11px] font-bold truncate">{schoolProfile.name}</h4>
+                        </div>
+                        <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-white/20 font-bold shrink-0">Resmi</span>
+                      </div>
+
+                      {/* 2 Cards side by side */}
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div className="theme-card p-1.5 space-y-0.5">
+                          <span className="text-[8px] text-slate-500 block">Total Siswa</span>
+                          <span className="text-xs font-black text-slate-800">1,248</span>
+                        </div>
+                        <div className="theme-card p-1.5 space-y-0.5">
+                          <span className="text-[8px] text-slate-500 block">Rata-rata Nilai</span>
+                          <span className="text-xs font-black" style={{ color: themeConfig.primaryColor }}>86.5</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Docked bottom navigation bar */}
+                    <div className="pt-1 border-t border-slate-200/60 shrink-0">
+                      <BottomNavigation
+                        currentModule={simulatedCurrentModule}
+                        setCurrentModule={setSimulatedCurrentModule}
+                        onOpenMobileMenu={() => {}}
+                        isSimulatedPreview={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Summary of Current Active Styles - Compact Strip */}
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600 grid grid-cols-2 gap-x-2 gap-y-1">
               <div className="flex items-center justify-between">
-                <span>Preset Aktif:</span>
-                <span className="font-bold text-slate-800">{activePresetInfo?.name || 'Kustom Manual'}</span>
+                <span className="text-slate-400">Preset:</span>
+                <span className="font-bold text-slate-800 truncate ml-1">{activePresetInfo?.name || 'Kustom'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Radius Kartu:</span>
-                <span className="font-mono font-semibold text-slate-800">{themeConfig.cardRadius}</span>
+                <span className="text-slate-400">Warna:</span>
+                <div className="flex items-center gap-1 ml-1">
+                  <span className="w-2.5 h-2.5 rounded-full border border-slate-300 shrink-0" style={{ backgroundColor: themeConfig.primaryColor }} />
+                  <span className="font-mono font-bold text-slate-800 text-[10px]">{themeConfig.primaryColor}</span>
+                </div>
               </div>
               <div className="flex items-center justify-between">
-                <span>Bayangan (Shadow):</span>
-                <span className="font-mono font-semibold text-slate-800">{themeConfig.cardShadow}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Jarak Kartu (Atas & Bawah):</span>
-                <span className="font-mono font-semibold text-slate-800">
+                <span className="text-slate-400">Jarak Kartu:</span>
+                <span className="font-mono font-bold text-slate-800 text-[10px] truncate ml-1">
                   {themeConfig.cardSpacingY || 'normal'} ({themeConfig.cardMarginTop ?? 0}px / {themeConfig.cardMarginBottom ?? 16}px)
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Model Menu Bawah:</span>
-                <span className="font-mono font-semibold text-slate-800">
-                  {themeConfig.bottomNav?.style || 'classic'} ({themeConfig.bottomNav?.activeStyle || 'pill'})
+                <span className="text-slate-400">Menu Bawah:</span>
+                <span className="font-mono font-bold text-slate-800 text-[10px] truncate ml-1">
+                  {themeConfig.bottomNav?.style || 'classic'} • {themeConfig.bottomNav?.activeStyle || 'pill'}
                 </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Warna Utama:</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full border border-slate-200" style={{ backgroundColor: themeConfig.primaryColor }} />
-                  <span className="font-mono font-semibold text-slate-800">{themeConfig.primaryColor}</span>
-                </div>
               </div>
             </div>
           </div>
