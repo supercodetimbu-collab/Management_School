@@ -150,7 +150,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         {/* Jadwal Mengajar */}
         <div
           onClick={() => setCurrentModule('schedules')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Jadwal Mengajar</span>
@@ -170,7 +170,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         {/* Siswa Binaan */}
         <div
           onClick={() => setCurrentModule('students')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Siswa Binaan</span>
@@ -190,7 +190,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         {/* Tugas Aktif */}
         <div
           onClick={() => setCurrentModule('assignments')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Tugas Aktif</span>
@@ -210,7 +210,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         {/* Perlu Dinilai */}
         <div
           onClick={() => setCurrentModule('assignments')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Perlu Dinilai</span>
@@ -228,13 +228,13 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         </div>
       </div>
 
-      {/* Quick Action Cards for Teacher - Synchronized 1:1 with Dashboard Card Layout & Spacing */}
+      {/* Quick Action Cards for Teacher - Synchronized 1:1 with Dashboard Card Layout & Spacing (All 4 cards united together) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {/* Action 1: Presensi Siswa */}
         <button
           type="button"
           onClick={() => setCurrentModule('attendance')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Presensi Harian</span>
@@ -257,7 +257,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         <button
           type="button"
           onClick={() => setCurrentModule('grades')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Penilaian</span>
@@ -280,7 +280,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         <button
           type="button"
           onClick={() => setCurrentModule('assignments')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Penugasan</span>
@@ -303,7 +303,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         <button
           type="button"
           onClick={() => setCurrentModule('report_cards')}
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between text-left"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Wali Kelas</span>
@@ -326,7 +326,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
       {/* Today's Teaching Schedule & Pending Submissions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Today's Classes */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+        <div className="theme-card bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2">
@@ -473,7 +473,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         </div>
 
         {/* Pending Submissions */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+        <div className="theme-card bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

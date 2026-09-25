@@ -654,15 +654,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ${appBgCss}
       }
 
-      /* Dynamic Hero/Greeting Banners across ALL roles (Admin, Guru, Siswa, Ortu, Kepsek) */
-      main .rounded-3xl[class*="from-"],
-      main [class*="bg-gradient"][class*="rounded-"],
-      .theme-hero-banner {
+      /* Dynamic Hero/Greeting Banner (Top of dashboard) */
+      main > div > .rounded-3xl:first-child,
+      main > div > div > .rounded-3xl:first-child,
+      main .theme-hero-banner:first-child,
+      main .rounded-3xl[class*="from-"]:first-child,
+      main [class*="bg-gradient"][class*="rounded-"]:first-child {
         background: linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%) !important;
         border-radius: var(--theme-card-radius) !important;
         box-shadow: var(--theme-card-shadow) !important;
         margin-top: var(--theme-card-margin-top) !important;
         margin-bottom: 0px !important;
+        margin-block-end: 0px !important;
         padding-top: max(0.6rem, var(--theme-card-padding-y)) !important;
         padding-bottom: max(0.6rem, var(--theme-card-padding-y)) !important;
       }
@@ -682,15 +685,29 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Single Source of Truth: 100% Selaras (Uniform) Card Spacing across ALL vertical lists & containers */
+      /* 1. Neutralize all Tailwind space-y margin-block-end / margin-bottom so distances never accumulate or conflict */
+      main [class*="space-y-"] > *,
+      main [class*="space-y-"] > :not(:last-child),
+      main .space-y-8 > :not(:last-child),
+      main .space-y-6 > :not(:last-child),
+      main .space-y-5 > :not(:last-child),
+      main .space-y-4 > :not(:last-child) {
+        margin-bottom: 0px !important;
+        margin-block-end: 0px !important;
+      }
+
+      /* 2. Single Source of Truth: 100% Selaras (Uniform) Card Spacing across ALL vertical lists & containers */
+      main [class*="space-y-"] > * + *,
       main .space-y-8 > * + *,
       main .space-y-6 > * + *,
       main .space-y-5 > * + *,
       main .space-y-4 > * + * {
         margin-top: var(--theme-card-spacing-y) !important;
+        margin-block-start: var(--theme-card-spacing-y) !important;
       }
 
-      /* Single Source of Truth: 100% Selaras (Uniform) Card Spacing across ALL card grids (both horizontal and vertical) */
+      /* 3. Single Source of Truth: 100% Selaras (Uniform) Card Spacing across ALL card grids (both horizontal and vertical) */
+      main [class*="space-y-"] > .grid,
       main .space-y-8 > .grid,
       main .space-y-6 > .grid,
       main .space-y-5 > .grid,
