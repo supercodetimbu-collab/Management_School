@@ -37,8 +37,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setCurrentModule
     schoolProfile,
   } = useSiakadData();
 
-  // Quick stats
-  const totalStudents = students.filter((s) => s.status === 'Aktif').length;
+  // Quick stats - 100% synchronized with Master Dataset
+  const totalStudents = students.length;
   const totalTeachers = teachers.filter((t) => t.status === 'Aktif').length;
   const totalClasses = classes.filter((c) => c.status === 'Aktif').length;
   const totalSubjects = subjects.length;

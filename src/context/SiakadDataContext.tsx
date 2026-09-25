@@ -185,7 +185,7 @@ interface SiakadDataContextType {
 
 const SiakadDataContext = createContext<SiakadDataContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'siakad_master_database_v1';
+const STORAGE_KEY = 'siakad_master_database_v2';
 
 export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isFirebaseConnected] = useState<boolean>(isFirebaseReady);
@@ -227,10 +227,20 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Load state from localStorage or default to initial datasets
   const [data, setData] = useState(() => {
+    // Check current v2 storage key
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Ensure student dataset contains all current master records if older cached data had fewer students
+        if (parsed && Array.isArray(parsed.students) && parsed.students.length >= INITIAL_STUDENTS.length) {
+          return parsed;
+        }
+        return {
+          ...parsed,
+          students: INITIAL_STUDENTS,
+          classes: parsed.classes?.length >= INITIAL_CLASSES.length ? parsed.classes : INITIAL_CLASSES,
+        };
       } catch (err) {
         console.error('Error reading localStorage for SIAKAD database, using defaults', err);
       }

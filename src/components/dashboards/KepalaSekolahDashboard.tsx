@@ -30,7 +30,7 @@ export const KepalaSekolahDashboard: React.FC<KepalaSekolahDashboardProps> = ({
   const { currentUser } = useAuth();
   const { schoolProfile, students, teachers, classes, grades, activeAcademicYear, announcements } = useSiakadData();
 
-  const totalStudents = students.filter((s) => s.status === 'Aktif').length;
+  const totalStudents = students.length;
   const totalTeachers = teachers.filter((t) => t.status === 'Aktif').length;
   const totalClasses = classes.filter((c) => c.status === 'Aktif').length;
 
