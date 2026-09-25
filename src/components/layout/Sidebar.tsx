@@ -25,6 +25,7 @@ import {
   TrendingUp,
   User as UserIcon,
   MessageSquare,
+  Palette,
 } from 'lucide-react';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 
@@ -92,7 +93,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
         {
           title: 'SISTEM & MULTI-SEKOLAH',
           items: [
-            { id: 'user_management', label: 'Manajemen Pengguna & Sekolah', icon: UserCog },
+            { id: 'user_management', label: 'Multi-Sekolah & Akun', icon: School },
+            { id: 'theme_customizer', label: 'Tema & Tampilan', icon: Palette },
             { id: 'audit_logs', label: 'Audit Aktivitas', icon: History },
             { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
             { id: 'profile', label: 'Profil Super Admin', icon: UserIcon },
@@ -144,6 +146,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
           title: 'PENGELOLAAN & AKUN',
           items: [
             { id: 'user_management', label: 'Kelola Pengguna Sekolah', icon: UserCog },
+            { id: 'theme_customizer', label: 'Tema & Tampilan', icon: Palette },
             { id: 'settings', label: 'Pengaturan Sekolah', icon: Settings },
             { id: 'profile', label: 'Profil Saya', icon: UserIcon },
             { id: 'integration_docs', label: 'Dokumentasi Sistem', icon: HelpCircle },
@@ -275,11 +278,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
       {/* Navigation Sections - Independent Dedicated Scroll Area */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 overscroll-contain sidebar-scroll scroll-smooth">
         {sections.map((section, idx) => (
-          <div key={idx}>
-            <p className="px-3 text-[10px] font-bold text-slate-400 tracking-wider mb-1.5 uppercase">
+          <div key={idx} className="text-left">
+            <p className="px-3 text-[10px] font-bold text-slate-400 tracking-wider mb-1.5 uppercase text-left truncate block select-none">
               {section.title}
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-0.5 text-left">
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentModule === item.id;
@@ -287,18 +290,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentModule, setCurrentModul
                   <button
                     key={item.id}
                     onClick={() => setCurrentModule(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer text-left ${
                       isActive
                         ? 'bg-teal-600 text-white shadow-xs'
                         : 'text-slate-600 hover:text-teal-700 hover:bg-teal-50/60'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1 text-left">
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span className="truncate text-left whitespace-nowrap block">{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500 text-white">
+                      <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500 text-white shrink-0 ml-1.5">
                         {item.badge}
                       </span>
                     )}

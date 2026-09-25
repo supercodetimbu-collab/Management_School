@@ -22,7 +22,9 @@ import {
   Clock,
   Sparkles,
   Layers,
+  Palette,
 } from 'lucide-react';
+import { ThemeCustomizerModule } from './ThemeCustomizerModule';
 import {
   isFirebaseReady,
   firebaseConfig,
@@ -50,7 +52,7 @@ export const SettingsModule: React.FC = () => {
   const isSuperAdmin = currentRole === 'superadmin';
   const isAdmin = currentRole === 'admin';
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'database_cloud' | 'backup' | 'audit'>(
+  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'database_cloud' | 'backup' | 'audit' | 'theme'>(
     isSuperAdmin ? 'database_cloud' : 'profile'
   );
 
@@ -294,6 +296,15 @@ export const SettingsModule: React.FC = () => {
             Tahun Ajaran
           </button>
           <button
+            onClick={() => setActiveTab('theme')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'theme' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5" />
+            <span>Tema & Tampilan</span>
+          </button>
+          <button
             onClick={() => setActiveTab('backup')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap ${
               activeTab === 'backup' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
@@ -533,8 +544,28 @@ export const SettingsModule: React.FC = () => {
 
       {/* Profile Form Tab */}
       {activeTab === 'profile' && (
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs">
-          <h3 className="text-sm font-bold text-slate-800 pb-3 border-b border-slate-100 mb-4">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
+          {/* Quick Jump Banner to Theme Customizer */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Palette className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-800">Kustomisasi Tema, Warna & Bentuk Kartu</h4>
+                <p className="text-[11px] text-slate-500">Ubah palet warna institusi, kelengkungan kartu, bayangan, dan motif latar belakang di tab Tema & Tampilan.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('theme')}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition shrink-0 shadow-xs cursor-pointer"
+            >
+              Kustomisasi Tema Sekarang
+            </button>
+          </div>
+
+          <h3 className="text-sm font-bold text-slate-800 pb-3 border-b border-slate-100">
             Identitas Resmi Satuan Pendidikan
           </h3>
           <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -685,6 +716,11 @@ export const SettingsModule: React.FC = () => {
             </div>
           </form>
         </div>
+      )}
+
+      {/* Theme Customizer Tab */}
+      {activeTab === 'theme' && (
+        <ThemeCustomizerModule />
       )}
 
       {/* Local Backup Tab */}

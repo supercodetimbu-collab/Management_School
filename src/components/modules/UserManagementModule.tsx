@@ -286,11 +286,11 @@ export const UserManagementModule: React.FC = () => {
       {/* Top Banner */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-bold text-slate-800">
               {isSuperAdmin ? 'Pusat Manajemen Multi-Sekolah & Akun Global' : 'Manajemen Akun Pengguna Sekolah'}
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800 border border-teal-200 shrink-0">
               {isSuperAdmin ? 'Akses Superadmin' : 'Akses Admin Sekolah'}
             </span>
           </div>

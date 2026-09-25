@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SiakadDataProvider } from './context/SiakadDataContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ModuleType } from './types';
 
 // Layout
@@ -37,6 +38,7 @@ import { PromotionsGraduationsModule } from './components/modules/PromotionsGrad
 import { FinancesModule } from './components/modules/FinancesModule';
 import { AnnouncementsModule } from './components/modules/AnnouncementsModule';
 import { SettingsModule } from './components/modules/SettingsModule';
+import { ThemeCustomizerModule } from './components/modules/ThemeCustomizerModule';
 import { ProfileModule } from './components/modules/ProfileModule';
 import { UserManagementModule } from './components/modules/UserManagementModule';
 import { ChatModule } from './components/modules/ChatModule';
@@ -115,6 +117,8 @@ const MainAppContent: React.FC = () => {
         return <ChatModule />;
       case 'settings':
         return <SettingsModule />;
+      case 'theme_customizer':
+        return <ThemeCustomizerModule />;
       case 'profile':
         return <ProfileModule />;
       case 'reports':
@@ -130,7 +134,7 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen md:h-screen md:overflow-hidden w-full max-w-full overflow-x-hidden bg-slate-50 flex flex-col antialiased selection:bg-teal-500 selection:text-white">
+    <div id="app-root-container" className="min-h-screen md:h-screen md:overflow-hidden w-full max-w-full overflow-x-hidden bg-slate-50 flex flex-col antialiased selection:bg-teal-500 selection:text-white transition-colors duration-200">
       {/* Real-time Global Live Toast for Instant Notifications */}
       <LiveToastNotification
         notification={latestLiveToast}
@@ -205,7 +209,9 @@ export default function App() {
   return (
     <AuthProvider>
       <SiakadDataProvider>
-        <MainAppContent />
+        <ThemeProvider>
+          <MainAppContent />
+        </ThemeProvider>
       </SiakadDataProvider>
     </AuthProvider>
   );

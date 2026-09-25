@@ -35,8 +35,52 @@ export type ModuleType =
   | 'user_management'
   | 'audit_logs'
   | 'settings'
+  | 'theme_customizer'
   | 'profile'
   | 'integration_docs';
+
+export type ThemePresetId =
+  | 'emerald'
+  | 'sapphire'
+  | 'ocean'
+  | 'violet'
+  | 'amber'
+  | 'ruby'
+  | 'slate'
+  | 'midnight'
+  | 'custom';
+
+export type CardRadiusType = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+export type CardBorderStyle = 'none' | 'subtle' | 'tinted' | 'prominent';
+export type CardShadowType = 'none' | 'sm' | 'md' | 'lg' | 'glow';
+export type CardBgType = 'pure-white' | 'frosted-glass' | 'soft-tint' | 'off-white' | 'dark-slate';
+export type BackgroundStyleType =
+  | 'neutral-slate'
+  | 'warm-cream'
+  | 'cool-gray'
+  | 'subtle-mesh'
+  | 'dot-matrix'
+  | 'micro-grid'
+  | 'midnight-dark';
+export type SidebarStyleType = 'white-clean' | 'dark-navy' | 'frosted-glass' | 'primary-gradient';
+export type HeaderStyleType = 'white-clean' | 'primary-tint' | 'glass-blur' | 'dark-slate';
+export type UiDensityType = 'comfortable' | 'compact';
+
+export interface ThemeConfig {
+  preset: ThemePresetId;
+  primaryColor: string;
+  accentColor: string;
+  cardRadius: CardRadiusType;
+  cardBorderStyle: CardBorderStyle;
+  cardShadow: CardShadowType;
+  cardBg: CardBgType;
+  backgroundStyle: BackgroundStyleType;
+  sidebarStyle: SidebarStyleType;
+  headerStyle: HeaderStyleType;
+  uiDensity: UiDensityType;
+  enableCardHeaderStripe: boolean;
+  fontFamily?: string;
+}
 
 export interface User {
   id: string;
@@ -93,6 +137,7 @@ export interface SchoolProfile {
   principalNip: string;
   accreditation: string;
   themeColor: string;
+  themeConfig?: ThemeConfig;
 }
 
 export interface Student {

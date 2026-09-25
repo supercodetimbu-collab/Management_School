@@ -26,6 +26,7 @@ import {
   TrendingUp,
   User as UserIcon,
   MessageSquare,
+  Palette,
 } from 'lucide-react';
 import { PWAInstallButton } from '../common/PWAInstallButton';
 import { UserRole } from '../../types';
@@ -326,15 +327,37 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 <BarChart3 className="w-4 h-4" />
                 <span>Laporan Akademik</span>
               </button>
+              {currentRole === 'superadmin' && (
+                <button
+                  onClick={() => navigateTo('user_management')}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left ${
+                    currentModule === 'user_management' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
+                  }`}
+                >
+                  <School className="w-4 h-4 shrink-0" />
+                  <span className="truncate text-left">Multi-Sekolah & Akun</span>
+                </button>
+              )}
+              {(currentRole === 'admin' || currentRole === 'superadmin') && (
+                <button
+                  onClick={() => navigateTo('theme_customizer')}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left ${
+                    currentModule === 'theme_customizer' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
+                  }`}
+                >
+                  <Palette className="w-4 h-4 shrink-0" />
+                  <span className="truncate text-left">Tema & Tampilan</span>
+                </button>
+              )}
               {(currentRole === 'admin' || currentRole === 'superadmin') && (
                 <button
                   onClick={() => navigateTo('settings')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left ${
                     currentModule === 'settings' ? 'bg-teal-600 text-white' : 'text-slate-700 hover:bg-teal-50'
                   }`}
                 >
-                  <Settings className="w-4 h-4" />
-                  <span>Pengaturan Sekolah & Sistem</span>
+                  <Settings className="w-4 h-4 shrink-0" />
+                  <span className="truncate text-left">Pengaturan Sekolah & Sistem</span>
                 </button>
               )}
               <button

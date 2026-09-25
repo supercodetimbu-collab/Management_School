@@ -98,6 +98,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       case 'reports': return 'Laporan Sekolah';
       case 'user_management': return 'Manajemen Pengguna';
       case 'audit_logs': return 'Audit Aktivitas';
+      case 'theme_customizer': return 'Tema & Tampilan Sistem';
       case 'settings': return 'Pengaturan Sistem';
       case 'profile': return 'Profil Pengguna';
       case 'integration_docs': return 'Dokumentasi Sistem';
