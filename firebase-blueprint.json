@@ -121,6 +121,11 @@
         "headerStyle": { "type": "string" },
         "uiDensity": { "type": "string" },
         "enableCardHeaderStripe": { "type": "boolean" },
+        "cardSpacingY": { "type": "string" },
+        "cardMarginTop": { "type": "number" },
+        "cardMarginBottom": { "type": "number" },
+        "cardPaddingY": { "type": "string" },
+        "bottomNav": { "type": "object" },
         "updatedAt": { "type": "number" },
         "updatedBy": { "type": "string" }
       },

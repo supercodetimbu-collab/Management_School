@@ -6,10 +6,14 @@ import {
   CardBorderStyle,
   CardShadowType,
   CardBgType,
+  CardSpacingType,
+  CardPaddingYType,
   BackgroundStyleType,
   SidebarStyleType,
   HeaderStyleType,
   UiDensityType,
+  BottomNavConfig,
+  BottomNavItemConfig,
 } from '../types';
 import { subscribeToThemeConfig, saveThemeConfigToFirebase } from '../lib/firebase';
 
@@ -20,6 +24,44 @@ export interface ThemePresetOption {
   description: string;
   config: ThemeConfig;
 }
+
+export const DEFAULT_BOTTOM_NAV_ITEMS: BottomNavItemConfig[] = [
+  { id: 'dashboard', label: 'Beranda', iconName: 'LayoutDashboard', enabled: true },
+  { id: 'grades', label: 'Akademik', iconName: 'Award', enabled: true },
+  { id: 'schedules', label: 'Jadwal', iconName: 'Clock', enabled: true },
+  { id: 'announcements', label: 'Notifikasi', iconName: 'Bell', enabled: true },
+  { id: 'menu', label: 'Menu', iconName: 'Menu', enabled: true },
+];
+
+export const DEFAULT_BOTTOM_NAV_CONFIG: BottomNavConfig = {
+  style: 'classic',
+  activeStyle: 'pill',
+  labelMode: 'all',
+  iconSize: 'md',
+  showBadge: true,
+  floatingMargin: false,
+  items: DEFAULT_BOTTOM_NAV_ITEMS,
+};
+
+export const ensureCompleteThemeConfig = (cfg: any): ThemeConfig => {
+  if (!cfg) return DEFAULT_THEME_CONFIG;
+  return {
+    ...DEFAULT_THEME_CONFIG,
+    ...cfg,
+    cardSpacingY: cfg.cardSpacingY || 'normal',
+    cardMarginTop: typeof cfg.cardMarginTop === 'number' ? cfg.cardMarginTop : 0,
+    cardMarginBottom: typeof cfg.cardMarginBottom === 'number' ? cfg.cardMarginBottom : 16,
+    cardPaddingY: cfg.cardPaddingY || 'normal',
+    bottomNav: {
+      ...DEFAULT_BOTTOM_NAV_CONFIG,
+      ...(cfg.bottomNav || {}),
+      items:
+        cfg.bottomNav?.items && Array.isArray(cfg.bottomNav.items) && cfg.bottomNav.items.length > 0
+          ? cfg.bottomNav.items
+          : DEFAULT_BOTTOM_NAV_ITEMS,
+    },
+  };
+};
 
 export const THEME_PRESETS: ThemePresetOption[] = [
   {
@@ -224,7 +266,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem(STORAGE_THEME_KEY);
       if (saved) {
-        return { ...DEFAULT_THEME_CONFIG, ...JSON.parse(saved) };
+        return ensureCompleteThemeConfig(JSON.parse(saved));
       }
     } catch (e) {
       console.warn('Failed to load theme config from localStorage', e);
@@ -244,12 +286,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const unsubTheme = subscribeToThemeConfig((remoteConfig) => {
       if (remoteConfig && remoteConfig.primaryColor) {
         console.log('[ThemeContext] Real-time theme received from cloud Firestore:', remoteConfig.preset, remoteConfig.primaryColor);
-        setThemeConfigState(remoteConfig);
-        setSavedConfig(remoteConfig);
+        const complete = ensureCompleteThemeConfig(remoteConfig);
+        setThemeConfigState(complete);
+        setSavedConfig(complete);
         setIsCloudSynced(true);
         setLastSyncedAt(new Date().toLocaleTimeString('id-ID'));
         try {
-          localStorage.setItem(STORAGE_THEME_KEY, JSON.stringify(remoteConfig));
+          localStorage.setItem(STORAGE_THEME_KEY, JSON.stringify(complete));
         } catch {
           // ignore
         }
@@ -261,8 +304,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (e.key === STORAGE_THEME_KEY && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          setThemeConfigState(parsed);
-          setSavedConfig(parsed);
+          const complete = ensureCompleteThemeConfig(parsed);
+          setThemeConfigState(complete);
+          setSavedConfig(complete);
         } catch {
           // ignore
         }
@@ -272,8 +316,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const handleCustomSync = (e: any) => {
       if (e.detail?.config) {
-        setThemeConfigState(e.detail.config);
-        setSavedConfig(e.detail.config);
+        const complete = ensureCompleteThemeConfig(e.detail.config);
+        setThemeConfigState(complete);
+        setSavedConfig(complete);
       }
     };
     window.addEventListener('siakad_theme_changed', handleCustomSync);
@@ -287,7 +332,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateThemeConfig = useCallback((partial: Partial<ThemeConfig>) => {
     setThemeConfigState((prev) => {
-      const updated = { ...prev, ...partial };
+      const updated = {
+        ...prev,
+        ...partial,
+        bottomNav: partial.bottomNav
+          ? { ...(prev.bottomNav || DEFAULT_BOTTOM_NAV_CONFIG), ...partial.bottomNav }
+          : prev.bottomNav,
+      };
       if (!partial.preset) {
         updated.preset = 'custom';
       }
@@ -298,7 +349,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const applyPreset = useCallback((presetId: ThemePresetId) => {
     const found = THEME_PRESETS.find((p) => p.id === presetId);
     if (found) {
-      setThemeConfigState({ ...found.config });
+      setThemeConfigState((prev) => ({
+        ...found.config,
+        cardSpacingY: found.config.cardSpacingY || prev.cardSpacingY || 'normal',
+        cardMarginTop: typeof found.config.cardMarginTop === 'number' ? found.config.cardMarginTop : prev.cardMarginTop ?? 0,
+        cardMarginBottom: typeof found.config.cardMarginBottom === 'number' ? found.config.cardMarginBottom : prev.cardMarginBottom ?? 16,
+        cardPaddingY: found.config.cardPaddingY || prev.cardPaddingY || 'normal',
+        bottomNav: prev.bottomNav || DEFAULT_BOTTOM_NAV_CONFIG,
+      }));
     }
   }, []);
 
@@ -535,6 +593,24 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       `;
     }
 
+    // Card Spacing Y Mapping
+    const spacingYMap: Record<string, string> = {
+      compact: '8px',
+      normal: '16px',
+      relaxed: '24px',
+      spacious: '32px',
+    };
+    const cardSpacingY = spacingYMap[themeConfig.cardSpacingY || 'normal'] || '16px';
+    const cardMarginTop = typeof themeConfig.cardMarginTop === 'number' ? `${themeConfig.cardMarginTop}px` : '0px';
+    const cardMarginBottom = typeof themeConfig.cardMarginBottom === 'number' ? `${themeConfig.cardMarginBottom}px` : '16px';
+
+    const paddingYMap: Record<string, string> = {
+      compact: '0.75rem',
+      normal: '1.25rem',
+      relaxed: '1.75rem',
+    };
+    const cardPaddingY = paddingYMap[themeConfig.cardPaddingY || 'normal'] || '1.25rem';
+
     // Density mapping
     let densityCss = '';
     if (themeConfig.uiDensity === 'compact') {
@@ -560,6 +636,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         --theme-accent-rgb: ${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b};
         --theme-card-radius: ${radiusMap[themeConfig.cardRadius]};
         --theme-card-shadow: ${shadowMap[themeConfig.cardShadow]};
+        --theme-card-spacing-y: ${cardSpacingY};
+        --theme-card-margin-top: ${cardMarginTop};
+        --theme-card-margin-bottom: ${cardMarginBottom};
+        --theme-card-padding-y: ${cardPaddingY};
       }
 
       /* Global App Background */
@@ -573,6 +653,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         background: linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%) !important;
         border-radius: var(--theme-card-radius) !important;
         box-shadow: var(--theme-card-shadow) !important;
+        margin-top: var(--theme-card-margin-top) !important;
+        margin-bottom: var(--theme-card-margin-bottom) !important;
       }
 
       /* Dynamically Adapt Core Cards across all modules and dashboards */
@@ -584,7 +666,23 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         box-shadow: var(--theme-card-shadow) !important;
         ${cardBgCss}
         ${cardBorderCss}
+        margin-top: var(--theme-card-margin-top) !important;
+        margin-bottom: var(--theme-card-margin-bottom) !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Vertical card spacing across lists and grids */
+      main .space-y-6 > * + * {
+        margin-top: var(--theme-card-spacing-y) !important;
+      }
+      main .space-y-5 > * + * {
+        margin-top: var(--theme-card-spacing-y) !important;
+      }
+      main .space-y-4 > * + * {
+        margin-top: calc(var(--theme-card-spacing-y) * 0.75) !important;
+      }
+      main .grid {
+        row-gap: var(--theme-card-spacing-y) !important;
       }
 
       /* Card Header Accent Stripe */

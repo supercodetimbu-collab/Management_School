@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { useTheme, THEME_PRESETS } from '../../context/ThemeContext';
+import {
+  useTheme,
+  THEME_PRESETS,
+  DEFAULT_BOTTOM_NAV_CONFIG,
+  DEFAULT_BOTTOM_NAV_ITEMS,
+} from '../../context/ThemeContext';
 import { useSiakadData } from '../../context/SiakadDataContext';
 import { useAuth } from '../../context/AuthContext';
+import {
+  BottomNavigation,
+  BOTTOM_NAV_ICON_MAP,
+} from '../layout/BottomNavigation';
 import {
   Palette,
   Sparkles,
@@ -36,6 +45,20 @@ import {
   Clock,
   Flame,
   Zap,
+  Navigation,
+  ArrowUpDown,
+  MoveVertical,
+  SlidersHorizontal,
+  Edit3,
+  ToggleLeft,
+  ToggleRight,
+  Home,
+  BookOpen,
+  MessageSquare,
+  Megaphone,
+  Grid,
+  LayoutDashboard,
+  Bell,
 } from 'lucide-react';
 import {
   ThemePresetId,
@@ -43,10 +66,18 @@ import {
   CardBorderStyle,
   CardShadowType,
   CardBgType,
+  CardSpacingType,
+  CardPaddingYType,
   BackgroundStyleType,
   SidebarStyleType,
   HeaderStyleType,
   UiDensityType,
+  BottomNavConfig,
+  BottomNavStyleType,
+  BottomNavActiveStyleType,
+  BottomNavLabelModeType,
+  BottomNavIconSizeType,
+  BottomNavItemConfig,
 } from '../../types';
 
 export const ThemeCustomizerModule: React.FC = () => {
@@ -68,13 +99,16 @@ export const ThemeCustomizerModule: React.FC = () => {
   const { schoolProfile, updateSchoolProfile, logAction } = useSiakadData();
   const { currentUser, currentRole } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'presets' | 'colors' | 'cards' | 'background' | 'navigation' | 'density'>('presets');
+  const [activeTab, setActiveTab] = useState<
+    'presets' | 'colors' | 'cards' | 'background' | 'navigation' | 'bottomNav' | 'density'
+  >('presets');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [copiedJson, setCopiedJson] = useState(false);
+  const [simulatedCurrentModule, setSimulatedCurrentModule] = useState('dashboard');
 
   // Common quick palette colors
   const primarySwatches = [
@@ -161,6 +195,39 @@ export const ThemeCustomizerModule: React.FC = () => {
     } else {
       setJsonError('Format JSON tidak valid atau struktur data tema tidak sesuai.');
     }
+  };
+
+  const bottomNavConfig = themeConfig.bottomNav || DEFAULT_BOTTOM_NAV_CONFIG;
+  const bottomNavItems = bottomNavConfig.items || DEFAULT_BOTTOM_NAV_ITEMS;
+
+  const handleUpdateBottomNavConfig = (updates: Partial<BottomNavConfig>) => {
+    updateThemeConfig({
+      bottomNav: {
+        ...bottomNavConfig,
+        ...updates,
+      },
+    });
+  };
+
+  const handleUpdateBottomNavItem = (id: string, updates: Partial<BottomNavItemConfig>) => {
+    const updatedItems = bottomNavItems.map((item) => {
+      if (item.id === id) {
+        return { ...item, ...updates };
+      }
+      return item;
+    });
+    updateThemeConfig({
+      bottomNav: {
+        ...bottomNavConfig,
+        items: updatedItems,
+      },
+    });
+  };
+
+  const handleResetBottomNavToDefault = () => {
+    updateThemeConfig({
+      bottomNav: DEFAULT_BOTTOM_NAV_CONFIG,
+    });
   };
 
   return (
@@ -349,7 +416,19 @@ export const ThemeCustomizerModule: React.FC = () => {
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Bilah & Header</span>
+              <span>Bilah Samping & Atas</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('bottomNav')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 ${
+                activeTab === 'bottomNav'
+                  ? 'bg-white text-slate-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Navigation className="w-3.5 h-3.5 text-teal-600" />
+              <span>Menu Ikon Bawah (Mobile)</span>
             </button>
 
             <button
@@ -743,6 +822,200 @@ export const ThemeCustomizerModule: React.FC = () => {
                   })}
                 </div>
               </div>
+
+              {/* 5. Jarak Vertikal Kartu (Atas & Bawah) */}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <MoveVertical className="w-4 h-4 text-teal-600" />
+                      <span>Pengaturan Jarak Kartu: Atas & Bawah (Card Spacing & Margins)</span>
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Atur jarak renggang vertikal antar kartu, margin atas-bawah, serta padding isi kartu agar proporsional di seluruh akun.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                    Jarak: {themeConfig.cardSpacingY || 'normal'}
+                  </span>
+                </div>
+
+                {/* 5a. Preset Jarak Cepat */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-semibold text-slate-700 block">Pilihan Preset Jarak Cepat:</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'compact', label: 'Rapat (8px)', desc: 'Hemat ruang layar, padat data', gap: 8, top: 0, btm: 8 },
+                      { id: 'normal', label: 'Standar (16px)', desc: 'Seimbang & proporsional harian', gap: 16, top: 0, btm: 16 },
+                      { id: 'relaxed', label: 'Renggang (24px)', desc: 'Lega & santai dibaca', gap: 24, top: 4, btm: 24 },
+                      { id: 'spacious', label: 'Lapang (32px)', desc: 'Gaya editorial ekstra luas', gap: 32, top: 8, btm: 32 },
+                    ].map((sp) => {
+                      const isSelected = (themeConfig.cardSpacingY || 'normal') === sp.id;
+                      return (
+                        <button
+                          key={sp.id}
+                          type="button"
+                          onClick={() =>
+                            updateThemeConfig({
+                              cardSpacingY: sp.id as CardSpacingType,
+                              cardMarginTop: sp.top,
+                              cardMarginBottom: sp.btm,
+                            })
+                          }
+                          className={`p-2.5 rounded-xl border-2 transition text-left flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-teal-600 bg-teal-50/20 text-slate-900 font-bold shadow-xs'
+                              : 'border-slate-200 hover:border-slate-300 bg-white text-slate-600'
+                          }`}
+                          style={{
+                            borderColor: isSelected ? themeConfig.primaryColor : undefined,
+                          }}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="text-xs">{sp.label}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5" style={{ color: themeConfig.primaryColor }} />}
+                          </div>
+                          <span className="text-[10px] text-slate-400 mt-1">{sp.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 5b. Slider Kontrol Presisi: Margin Atas & Margin Bawah */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  {/* Margin Atas (Margin Top) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Margin Atas Kartu (Margin Top)</span>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
+                        {themeConfig.cardMarginTop ?? 0} px
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={32}
+                      step={2}
+                      value={themeConfig.cardMarginTop ?? 0}
+                      onChange={(e) => updateThemeConfig({ cardMarginTop: Number(e.target.value) })}
+                      className="w-full accent-teal-600 cursor-pointer"
+                    />
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                      <span>0px (Rapat)</span>
+                      <span>16px</span>
+                      <span>32px (Maksimal)</span>
+                    </div>
+                  </div>
+
+                  {/* Margin Bawah (Margin Bottom / Jarak Antar Kartu) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Margin Bawah / Jarak Antar Kartu (Margin Bottom)</span>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
+                        {themeConfig.cardMarginBottom ?? 16} px
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={4}
+                      max={48}
+                      step={2}
+                      value={themeConfig.cardMarginBottom ?? 16}
+                      onChange={(e) => updateThemeConfig({ cardMarginBottom: Number(e.target.value) })}
+                      className="w-full accent-teal-600 cursor-pointer"
+                    />
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                      <span>4px (Kompak)</span>
+                      <span>24px</span>
+                      <span>48px (Ekstra)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5c. Padding Vertikal Isi Kartu (Padding Y) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">Padding Vertikal Isi Kartu (Padding Atas & Bawah):</span>
+                    <span className="text-[11px] font-mono text-slate-500 font-semibold">
+                      {(themeConfig.cardPaddingY || 'normal') === 'compact' && '12px (py-3)'}
+                      {(themeConfig.cardPaddingY || 'normal') === 'normal' && '20px (py-5 - Standar)'}
+                      {(themeConfig.cardPaddingY || 'normal') === 'relaxed' && '28px (py-7 - Lapang)'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'compact', label: 'Ringkas (12px)', desc: 'Hemat tinggi' },
+                      { id: 'normal', label: 'Standar (20px)', desc: 'Proporsional seimbang' },
+                      { id: 'relaxed', label: 'Luas (28px)', desc: 'Ekstra lapang' },
+                    ].map((pad) => {
+                      const isSelected = (themeConfig.cardPaddingY || 'normal') === pad.id;
+                      return (
+                        <button
+                          key={pad.id}
+                          type="button"
+                          onClick={() => updateThemeConfig({ cardPaddingY: pad.id as CardPaddingYType })}
+                          className={`p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center ${
+                            isSelected
+                              ? 'border-teal-600 bg-teal-50/20 text-slate-900 font-bold'
+                              : 'border-slate-200 hover:border-slate-300 bg-white text-slate-600'
+                          }`}
+                          style={{
+                            borderColor: isSelected ? themeConfig.primaryColor : undefined,
+                          }}
+                        >
+                          <span className="text-xs">{pad.label}</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{pad.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Visual Inter-card Spacing Illustration Box */}
+                <div className="p-3.5 rounded-2xl bg-slate-100/80 border border-dashed border-slate-300 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                    <span>Ilustrasi Visual Jarak Kartu</span>
+                    <span className="font-mono text-slate-700">
+                      Top: {themeConfig.cardMarginTop ?? 0}px • Bottom: {themeConfig.cardMarginBottom ?? 16}px
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {/* Simulated Card 1 */}
+                    <div
+                      className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between text-xs text-slate-700"
+                      style={{
+                        marginTop: `${themeConfig.cardMarginTop ?? 0}px`,
+                        marginBottom: `${Math.max(4, (themeConfig.cardMarginBottom ?? 16) / 2)}px`,
+                      }}
+                    >
+                      <span className="font-bold">Kartu Atas (Contoh Elemen)</span>
+                      <span className="text-[10px] text-slate-400">Card 1</span>
+                    </div>
+
+                    {/* Gap indicator line */}
+                    <div className="flex items-center justify-center py-0.5">
+                      <div className="w-full border-t border-dashed border-teal-500/50 relative">
+                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-teal-600 text-white font-mono text-[9px] px-2 py-0.5 rounded-full shadow-2xs">
+                          Jarak Antar Kartu: {themeConfig.cardMarginBottom ?? 16}px
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Simulated Card 2 */}
+                    <div
+                      className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between text-xs text-slate-700"
+                      style={{
+                        marginTop: `${Math.max(4, (themeConfig.cardMarginBottom ?? 16) / 2)}px`,
+                        marginBottom: `${themeConfig.cardMarginBottom ?? 16}px`,
+                      }}
+                    >
+                      <span className="font-bold">Kartu Bawah (Contoh Elemen)</span>
+                      <span className="text-[10px] text-slate-400">Card 2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -964,6 +1237,344 @@ export const ThemeCustomizerModule: React.FC = () => {
                         </div>
                         <span className="text-[11px] text-slate-500">{item.desc}</span>
                       </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: BOTTOM NAVIGATION & ICON CUSTOMIZATION */}
+          {activeTab === 'bottomNav' && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 space-y-6 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-teal-600" />
+                    <span>Kustomisasi Bilah & Menu Ikon Bawah (Bottom Navigation)</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    Atur model bilah navigasi ponsel, efek aktif, mode teks label, ukuran ikon, serta sesuaikan teks dan ikon untuk 5 menu utama (Beranda, Akademik, Jadwal, Notifikasi, Menu).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetBottomNavToDefault}
+                  className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer"
+                  title="Kembalikan nama & ikon bilah bawah ke pengaturan bawaan"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset Menu Bawah</span>
+                </button>
+              </div>
+
+              {/* 1. Model Desain Bilah Navigasi Bawah */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-800 block">
+                  1. Model Desain Bilah Bawah (Bar Style)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {[
+                    { id: 'classic', label: 'Bilah Klasik Menempel', desc: 'Dock penuh di bawah layar dengan garis pemisah atas.' },
+                    { id: 'floating', label: 'Melayang (Floating Island)', desc: 'Mengambang elegan dengan rounded kapsul & bayangan mewah.' },
+                    { id: 'glassmorphism', label: 'Kaca Tembus Pandang', desc: 'Efek frosted glass transparan dengan blur tinggi.' },
+                    { id: 'colored', label: 'Aksen Warna Tema', desc: 'Gradasi dinamis mengikuti warna identitas sekolah.' },
+                    { id: 'dark', label: 'Midnight Dark Dock', desc: 'Latar gelap obsidian #0F172A dengan ikon kontras tinggi.' },
+                    { id: 'minimal', label: 'Minimalis Ramping', desc: 'Tampilan bersih tanpa bayangan atau border mencolok.' },
+                  ].map((styleOption) => {
+                    const isSelected = (bottomNavConfig.style || 'classic') === styleOption.id;
+                    return (
+                      <button
+                        key={styleOption.id}
+                        type="button"
+                        onClick={() => handleUpdateBottomNavConfig({ style: styleOption.id as BottomNavStyleType })}
+                        className={`p-3 rounded-2xl border-2 transition text-left flex flex-col justify-between h-22 ${
+                          isSelected
+                            ? 'border-teal-600 bg-teal-50/20 text-slate-900 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-white text-slate-600'
+                        }`}
+                        style={{
+                          borderColor: isSelected ? themeConfig.primaryColor : undefined,
+                        }}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-bold text-slate-800">{styleOption.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5" style={{ color: themeConfig.primaryColor }} />}
+                        </div>
+                        <span className="text-[10px] text-slate-400 mt-1 line-clamp-2">{styleOption.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Gaya Efek Menu Aktif */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-800 block">
+                  2. Gaya Efek Indikator Menu Aktif (Active Indicator Effect)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                  {[
+                    { id: 'pill', label: 'Kapsul Melengkung', desc: 'Pill lembut di balik ikon' },
+                    { id: 'bubble', label: 'Bubble Terangkat', desc: 'Ikon terangkat naik bulat' },
+                    { id: 'top-bar', label: 'Garis Aksen Atas', desc: 'Garis horizontal di atas menu' },
+                    { id: 'glow', label: 'Pendaran Neon Glow', desc: 'Pendaran cahaya warna tema' },
+                    { id: 'minimal', label: 'Sederhana (Scale)', desc: 'Skala pembesaran & warna' },
+                  ].map((act) => {
+                    const isSelected = (bottomNavConfig.activeStyle || 'pill') === act.id;
+                    return (
+                      <button
+                        key={act.id}
+                        type="button"
+                        onClick={() => handleUpdateBottomNavConfig({ activeStyle: act.id as BottomNavActiveStyleType })}
+                        className={`p-3 rounded-2xl border-2 transition text-center flex flex-col items-center justify-center gap-1 ${
+                          isSelected
+                            ? 'border-teal-600 bg-teal-50/20 text-slate-900 font-bold'
+                            : 'border-slate-200 hover:border-slate-300 bg-white text-slate-600'
+                        }`}
+                        style={{
+                          borderColor: isSelected ? themeConfig.primaryColor : undefined,
+                        }}
+                      >
+                        <span className="text-xs">{act.label}</span>
+                        <span className="text-[10px] text-slate-400">{act.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Mode Teks Label & Ukuran Ikon */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 3a. Mode Label */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-800 block">
+                    3. Mode Teks Label Menu
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'all', label: 'Semua Tampil', desc: 'Teks selalu ada' },
+                      { id: 'active-only', label: 'Hanya Aktif', desc: 'Modern ala iOS/Android' },
+                      { id: 'icons-only', label: 'Ikon Saja', desc: 'Super bersih tanpa teks' },
+                    ].map((mode) => {
+                      const isSelected = (bottomNavConfig.labelMode || 'all') === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => handleUpdateBottomNavConfig({ labelMode: mode.id as BottomNavLabelModeType })}
+                          className={`p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center ${
+                            isSelected
+                              ? 'border-teal-600 bg-teal-50/20 text-slate-900 font-bold'
+                              : 'border-slate-200 hover:border-slate-300 bg-white text-slate-600'
+                          }`}
+                          style={{
+                            borderColor: isSelected ? themeConfig.primaryColor : undefined,
+                          }}
+                        >
+                          <span className="text-xs">{mode.label}</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{mode.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 3b. Ukuran Ikon */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-800 block">
+                    4. Ukuran Ikon Navigasi
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'sm', label: 'Kecil (18px)', desc: 'Ramping & ringkas' },
+                      { id: 'md', label: 'Sedang (22px)', desc: 'Standar seimbang' },
+                      { id: 'lg', label: 'Besar (26px)', desc: 'Mudah disentuh' },
+                    ].map((sz) => {
+                      const isSelected = (bottomNavConfig.iconSize || 'md') === sz.id;
+                      return (
+                        <button
+                          key={sz.id}
+                          type="button"
+                          onClick={() => handleUpdateBottomNavConfig({ iconSize: sz.id as BottomNavIconSizeType })}
+                          className={`p-2.5 rounded-xl border-2 transition text-center flex flex-col items-center justify-center ${
+                            isSelected
+                              ? 'border-teal-600 bg-teal-50/20 text-slate-900 font-bold'
+                              : 'border-slate-200 hover:border-slate-300 bg-white text-slate-600'
+                          }`}
+                          style={{
+                            borderColor: isSelected ? themeConfig.primaryColor : undefined,
+                          }}
+                        >
+                          <span className="text-xs">{sz.label}</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{sz.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Opsi Tambahan: Badge & Floating Margin */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-teal-600" />
+                  <span className="font-semibold text-slate-700">Tampilkan Angka Badge Notifikasi</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateBottomNavConfig({ showBadge: !bottomNavConfig.showBadge })}
+                  className={`px-3 py-1 rounded-full font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    bottomNavConfig.showBadge !== false
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-slate-200 text-slate-600 border border-slate-300'
+                  }`}
+                >
+                  {bottomNavConfig.showBadge !== false ? '✓ Badge Aktif' : '✕ Badge Dinonaktifkan'}
+                </button>
+              </div>
+
+              {/* 5. Kustomisasi Masing-Masing Menu Ikon */}
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Kustomisasi Teks & Ikon untuk 5 Menu Bawah</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Ubah label nama dan ganti ikon untuk masing-masing menu (Beranda, Akademik, Jadwal, Notifikasi, Menu).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {bottomNavItems.map((item, index) => {
+                    const CurrentIcon = BOTTOM_NAV_ICON_MAP[item.iconName] || LayoutDashboard;
+
+                    // Curated icon choices for each specific slot
+                    let suggestedIcons: string[] = [];
+                    if (item.id === 'dashboard') {
+                      suggestedIcons = ['LayoutDashboard', 'Home', 'Compass', 'Sparkles'];
+                    } else if (item.id === 'grades') {
+                      suggestedIcons = ['Award', 'GraduationCap', 'BookOpen', 'FileText', 'CheckSquare'];
+                    } else if (item.id === 'schedules') {
+                      suggestedIcons = ['Clock', 'Calendar', 'CalendarDays', 'AlarmClock'];
+                    } else if (item.id === 'announcements') {
+                      suggestedIcons = ['Bell', 'MessageSquare', 'Megaphone', 'Mail'];
+                    } else if (item.id === 'menu') {
+                      suggestedIcons = ['Menu', 'Grid', 'MoreHorizontal', 'Layers', 'Settings'];
+                    } else {
+                      suggestedIcons = ['LayoutDashboard', 'Home', 'Award', 'Clock', 'Bell', 'Menu'];
+                    }
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-4 rounded-2xl border-2 transition space-y-3 ${
+                          item.enabled !== false
+                            ? 'border-slate-200 bg-white shadow-2xs'
+                            : 'border-slate-200/60 bg-slate-50/70 opacity-60'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          {/* Left: Icon Preview & Title */}
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs"
+                              style={{ backgroundColor: themeConfig.primaryColor }}
+                            >
+                              <CurrentIcon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-slate-800">
+                                  Menu #{index + 1}: {item.label}
+                                </span>
+                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                                  ID: {item.id}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-400">
+                                Ikon aktif: <strong className="font-mono text-slate-600">{item.iconName}</strong>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Right: Toggle Switch Enabled/Disabled */}
+                          <div className="flex items-center gap-2 self-end sm:self-center">
+                            <span className="text-xs text-slate-500">
+                              {item.enabled !== false ? 'Aktif' : 'Tersembunyi'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateBottomNavItem(item.id, { enabled: item.enabled === false })}
+                              className={`p-1 rounded-lg transition cursor-pointer ${
+                                item.enabled !== false
+                                  ? 'text-teal-600 hover:text-teal-800'
+                                  : 'text-slate-400 hover:text-slate-600'
+                              }`}
+                              title={item.enabled !== false ? 'Sembunyikan menu ini' : 'Tampilkan menu ini'}
+                            >
+                              {item.enabled !== false ? (
+                                <ToggleRight className="w-7 h-7" />
+                              ) : (
+                                <ToggleLeft className="w-7 h-7" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Controls: Edit Label & Select Icon */}
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-slate-100 items-center">
+                          {/* Label input */}
+                          <div className="sm:col-span-5 space-y-1">
+                            <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                              <Edit3 className="w-3 h-3 text-slate-400" />
+                              <span>Label Nama Teks:</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={item.label}
+                              onChange={(e) => handleUpdateBottomNavItem(item.id, { label: e.target.value })}
+                              placeholder={`Contoh: ${item.label}`}
+                              className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                            />
+                          </div>
+
+                          {/* Icon Choices */}
+                          <div className="sm:col-span-7 space-y-1">
+                            <label className="text-[11px] font-bold text-slate-600 block">
+                              Pilih Model Ikon:
+                            </label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {suggestedIcons.map((icName) => {
+                                const PickIcon = BOTTOM_NAV_ICON_MAP[icName] || LayoutDashboard;
+                                const isPickSelected = item.iconName === icName;
+                                return (
+                                  <button
+                                    key={icName}
+                                    type="button"
+                                    onClick={() => handleUpdateBottomNavItem(item.id, { iconName: icName })}
+                                    className={`p-2 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer ${
+                                      isPickSelected
+                                        ? 'border-teal-600 bg-teal-50 text-teal-800 font-bold shadow-2xs'
+                                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                                    }`}
+                                    style={{
+                                      borderColor: isPickSelected ? themeConfig.primaryColor : undefined,
+                                    }}
+                                    title={icName}
+                                  >
+                                    <PickIcon className="w-4 h-4" />
+                                    <span className="text-[10px] hidden md:inline">{icName}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -1200,6 +1811,28 @@ export const ThemeCustomizerModule: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* Simulated Interactive Bottom Navigation Bar */}
+                <div className="pt-2 border-t border-slate-200/70 mt-3 space-y-1">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold px-1">
+                    <span className="flex items-center gap-1">
+                      <Navigation className="w-3 h-3 text-teal-600" />
+                      <span>Bilah Menu Bawah (Live Preview)</span>
+                    </span>
+                    <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-semibold">
+                      Gaya: {themeConfig.bottomNav?.style || 'classic'}
+                    </span>
+                  </div>
+                  <BottomNavigation
+                    currentModule={simulatedCurrentModule}
+                    setCurrentModule={setSimulatedCurrentModule}
+                    onOpenMobileMenu={() => {}}
+                    isSimulatedPreview={true}
+                  />
+                  <p className="text-[9px] text-center text-slate-400">
+                    Klik ikon menu di atas untuk menguji animasi & tampilan aktif
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -1216,6 +1849,18 @@ export const ThemeCustomizerModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span>Bayangan (Shadow):</span>
                 <span className="font-mono font-semibold text-slate-800">{themeConfig.cardShadow}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Jarak Kartu (Atas & Bawah):</span>
+                <span className="font-mono font-semibold text-slate-800">
+                  {themeConfig.cardSpacingY || 'normal'} ({themeConfig.cardMarginTop ?? 0}px / {themeConfig.cardMarginBottom ?? 16}px)
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Model Menu Bawah:</span>
+                <span className="font-mono font-semibold text-slate-800">
+                  {themeConfig.bottomNav?.style || 'classic'} ({themeConfig.bottomNav?.activeStyle || 'pill'})
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Warna Utama:</span>

@@ -54,6 +54,9 @@ export type CardRadiusType = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 export type CardBorderStyle = 'none' | 'subtle' | 'tinted' | 'prominent';
 export type CardShadowType = 'none' | 'sm' | 'md' | 'lg' | 'glow';
 export type CardBgType = 'pure-white' | 'frosted-glass' | 'soft-tint' | 'off-white' | 'dark-slate';
+export type CardSpacingType = 'compact' | 'normal' | 'relaxed' | 'spacious';
+export type CardPaddingYType = 'compact' | 'normal' | 'relaxed';
+
 export type BackgroundStyleType =
   | 'neutral-slate'
   | 'warm-cream'
@@ -65,6 +68,28 @@ export type BackgroundStyleType =
 export type SidebarStyleType = 'white-clean' | 'dark-navy' | 'frosted-glass' | 'primary-gradient';
 export type HeaderStyleType = 'white-clean' | 'primary-tint' | 'glass-blur' | 'dark-slate';
 export type UiDensityType = 'comfortable' | 'compact';
+
+export type BottomNavStyleType = 'classic' | 'floating' | 'glassmorphism' | 'minimal' | 'colored' | 'dark';
+export type BottomNavActiveStyleType = 'pill' | 'bubble' | 'top-bar' | 'glow' | 'minimal';
+export type BottomNavLabelModeType = 'all' | 'active-only' | 'icons-only';
+export type BottomNavIconSizeType = 'sm' | 'md' | 'lg';
+
+export interface BottomNavItemConfig {
+  id: string; // 'dashboard' | 'grades' | 'schedules' | 'announcements' | 'menu'
+  label: string;
+  iconName: string;
+  enabled: boolean;
+}
+
+export interface BottomNavConfig {
+  style: BottomNavStyleType;
+  activeStyle: BottomNavActiveStyleType;
+  labelMode: BottomNavLabelModeType;
+  iconSize: BottomNavIconSizeType;
+  showBadge: boolean;
+  floatingMargin: boolean;
+  items: BottomNavItemConfig[];
+}
 
 export interface ThemeConfig {
   preset: ThemePresetId;
@@ -80,6 +105,15 @@ export interface ThemeConfig {
   uiDensity: UiDensityType;
   enableCardHeaderStripe: boolean;
   fontFamily?: string;
+
+  // Card Spacing (Atas & Bawah)
+  cardSpacingY?: CardSpacingType;
+  cardMarginTop?: number; // in px (0-32)
+  cardMarginBottom?: number; // in px (4-40)
+  cardPaddingY?: CardPaddingYType;
+
+  // Bottom Navigation Bar & Icons Customization
+  bottomNav?: BottomNavConfig;
 }
 
 export interface User {
