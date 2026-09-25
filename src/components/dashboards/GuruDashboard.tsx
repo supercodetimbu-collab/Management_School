@@ -102,23 +102,23 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
 
   return (
     <div className="space-y-6">
-      {/* Teacher Greeting - Clean White Card */}
-      <div className="theme-card bg-white text-slate-800 p-5 sm:p-8 rounded-3xl border border-slate-200 shadow-2xs relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+      {/* Teacher Greeting */}
+      <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-teal-700 to-teal-800 text-white p-5 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-2">
-              <span className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+              <span className="inline-block px-3 py-1 rounded-full bg-white/15 text-blue-100 text-xs font-semibold">
                 Tenaga Pendidik & Pengajar
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200">
-                <School className="w-3.5 h-3.5 text-slate-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
+                <School className="w-3.5 h-3.5 text-white" />
                 <span>{schoolProfile.name}</span>
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-800">
+            <h1 className="text-xl sm:text-2xl font-black">
               Selamat Mengajar, {currentUser?.name || 'Bpk. Hendra Gunawan, M.Pd'} 👨‍🏫
             </h1>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            <p className="text-blue-100 text-xs sm:text-sm mt-1">
               Guru Mata Pelajaran Matematika • Wali Kelas X MIPA 1 • {schoolProfile.name}
             </p>
           </div>
@@ -127,18 +127,18 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
             <button
               onClick={handleRefreshScreen}
               disabled={isRefreshing}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-75"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
               title="Segarkan tampilan layar dan sinkronkan data terbaru"
             >
-              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-slate-600' : 'text-slate-600'}`} />
+              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-teal-200' : 'text-white'}`} />
               <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Layar'}</span>
             </button>
 
             <button
               onClick={() => setCurrentModule('attendance')}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white text-teal-800 hover:bg-teal-50 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
             >
-              <ClipboardCheck className="w-4 h-4 text-white" />
+              <ClipboardCheck className="w-4 h-4 text-teal-600" />
               <span>Presensi Siswa</span>
             </button>
           </div>
