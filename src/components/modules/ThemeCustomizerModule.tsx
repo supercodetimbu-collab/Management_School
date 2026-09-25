@@ -109,6 +109,7 @@ export const ThemeCustomizerModule: React.FC = () => {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [copiedJson, setCopiedJson] = useState(false);
   const [simulatedCurrentModule, setSimulatedCurrentModule] = useState('dashboard');
+  const [showMobilePreviewModal, setShowMobilePreviewModal] = useState(false);
 
   // Common quick palette colors
   const primarySwatches = [
@@ -342,7 +343,23 @@ export const ThemeCustomizerModule: React.FC = () => {
       {/* Main Grid: Left Controls (Tabs) & Right Live Interactive Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Left Column: Customization Controls with Independent Smooth Scrolling */}
-        <div className="lg:col-span-7 space-y-4 lg:max-h-[calc(100vh-9.5rem)] lg:overflow-y-auto lg:pr-2.5 sidebar-scroll">
+        <div className="lg:col-span-7 space-y-4 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-2.5 sidebar-scroll overscroll-contain">
+          {/* Mobile Quick Preview Banner (< lg) */}
+          <div className="lg:hidden p-2.5 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-between text-xs text-teal-900 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-teal-600 animate-pulse shrink-0" />
+              <span className="font-medium">Pratinjau tampilan tidak perlu di-scroll naik turun</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMobilePreviewModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-bold text-xs hover:bg-teal-700 transition flex items-center gap-1 shrink-0 shadow-xs cursor-pointer"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Buka Pratinjau</span>
+            </button>
+          </div>
+
           {/* Navigation Category Tabs */}
           <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl overflow-x-auto no-scrollbar border border-slate-200/70">
             <button
@@ -818,25 +835,77 @@ export const ThemeCustomizerModule: React.FC = () => {
                       <span>Pengaturan Jarak Kartu: Atas & Bawah (Card Spacing & Margins)</span>
                     </label>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Atur jarak renggang vertikal antar kartu, margin atas-bawah, serta padding isi kartu agar proporsional di seluruh akun.
+                      Atur jarak renggang vertikal antar kartu, margin atas-bawah, serta padding isi kartu. Bisa diatur hingga 0px (menempel rapat tanpa celah kosong).
                     </p>
                   </div>
-                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full font-bold bg-teal-50 text-teal-700 border border-teal-200">
-                    Jarak: {themeConfig.cardSpacingY || 'normal'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-full font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                      Jarak: {themeConfig.cardMarginBottom ?? 14}px ({themeConfig.cardSpacingY || 'normal'})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tombol Aksi Cepat Jarak Kartu */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateThemeConfig({
+                        cardMarginBottom: 0,
+                        cardMarginTop: 0,
+                        cardSpacingY: 'ultra',
+                        cardPaddingY: 'ultra',
+                      })
+                    }
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="Nolkan semua jarak kartu agar menempel rapat tanpa ruang sisa kosong"
+                  >
+                    <span>⚡ Nolkan Jarak (0px Super Rapat)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateThemeConfig({
+                        cardMarginBottom: 6,
+                        cardMarginTop: 0,
+                        cardSpacingY: 'compact',
+                        cardPaddingY: 'compact',
+                      })
+                    }
+                    className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>🌱 Rapat Padat (6px)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateThemeConfig({
+                        cardMarginBottom: 14,
+                        cardMarginTop: 0,
+                        cardSpacingY: 'normal',
+                        cardPaddingY: 'normal',
+                      })
+                    }
+                    className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>⚖️ Standar (14px)</span>
+                  </button>
                 </div>
 
                 {/* 5a. Preset Jarak Cepat */}
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-semibold text-slate-700 block">Pilihan Preset Jarak Cepat:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     {[
-                      { id: 'compact', label: 'Rapat (8px)', desc: 'Hemat ruang layar, padat data', gap: 8, top: 0, btm: 8 },
-                      { id: 'normal', label: 'Standar (16px)', desc: 'Seimbang & proporsional harian', gap: 16, top: 0, btm: 16 },
-                      { id: 'relaxed', label: 'Renggang (24px)', desc: 'Lega & santai dibaca', gap: 24, top: 4, btm: 24 },
-                      { id: 'spacious', label: 'Lapang (32px)', desc: 'Gaya editorial ekstra luas', gap: 32, top: 8, btm: 32 },
+                      { id: 'ultra', label: 'Ultra (0px)', desc: 'Kartu menempel rapat, 0 celah kosong', gap: 0, top: 0, btm: 0, pad: 'ultra' },
+                      { id: 'compact', label: 'Kompak (6px)', desc: 'Hemat ruang layar, efisien padat', gap: 6, top: 0, btm: 6, pad: 'compact' },
+                      { id: 'normal', label: 'Standar (14px)', desc: 'Seimbang & proporsional harian', gap: 14, top: 0, btm: 14, pad: 'normal' },
+                      { id: 'relaxed', label: 'Renggang (22px)', desc: 'Lega & santai dibaca', gap: 22, top: 4, btm: 22, pad: 'normal' },
+                      { id: 'spacious', label: 'Lapang (32px)', desc: 'Gaya editorial ekstra luas', gap: 32, top: 8, btm: 32, pad: 'relaxed' },
                     ].map((sp) => {
-                      const isSelected = (themeConfig.cardSpacingY || 'normal') === sp.id;
+                      const isSelected =
+                        (themeConfig.cardSpacingY === sp.id) ||
+                        (themeConfig.cardMarginBottom === sp.btm);
                       return (
                         <button
                           key={sp.id}
@@ -846,6 +915,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                               cardSpacingY: sp.id as CardSpacingType,
                               cardMarginTop: sp.top,
                               cardMarginBottom: sp.btm,
+                              cardPaddingY: sp.pad as CardPaddingYType,
                             })
                           }
                           className={`p-2.5 rounded-xl border-2 transition text-left flex flex-col justify-between ${
@@ -861,15 +931,47 @@ export const ThemeCustomizerModule: React.FC = () => {
                             <span className="text-xs">{sp.label}</span>
                             {isSelected && <Check className="w-3.5 h-3.5" style={{ color: themeConfig.primaryColor }} />}
                           </div>
-                          <span className="text-[10px] text-slate-400 mt-1">{sp.desc}</span>
+                          <span className="text-[10px] text-slate-400 mt-1 line-clamp-2">{sp.desc}</span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* 5b. Slider Kontrol Presisi: Margin Atas & Margin Bawah */}
+                {/* 5b. Slider Kontrol Presisi: Jarak Antar Kartu & Margin Atas */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  {/* Margin Bawah / Jarak Antar Kartu (Bisa Sampai 0px) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Jarak Vertikal Antar Kartu (Margin Bawah)</span>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
+                        {themeConfig.cardMarginBottom ?? 14} px
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={36}
+                      step={1}
+                      value={themeConfig.cardMarginBottom ?? 14}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        const spacingType: CardSpacingType =
+                          val <= 2 ? 'ultra' : val <= 8 ? 'compact' : val <= 18 ? 'normal' : val <= 26 ? 'relaxed' : 'spacious';
+                        updateThemeConfig({
+                          cardMarginBottom: val,
+                          cardSpacingY: spacingType,
+                        });
+                      }}
+                      className="w-full accent-teal-600 cursor-pointer"
+                    />
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                      <span className="text-emerald-600 font-bold">0px (Menempel Rapat)</span>
+                      <span>14px (Standar)</span>
+                      <span>36px (Maksimal)</span>
+                    </div>
+                  </div>
+
                   {/* Margin Atas (Margin Top) */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -881,40 +983,16 @@ export const ThemeCustomizerModule: React.FC = () => {
                     <input
                       type="range"
                       min={0}
-                      max={32}
-                      step={2}
+                      max={24}
+                      step={1}
                       value={themeConfig.cardMarginTop ?? 0}
                       onChange={(e) => updateThemeConfig({ cardMarginTop: Number(e.target.value) })}
                       className="w-full accent-teal-600 cursor-pointer"
                     />
                     <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                       <span>0px (Rapat)</span>
-                      <span>16px</span>
-                      <span>32px (Maksimal)</span>
-                    </div>
-                  </div>
-
-                  {/* Margin Bawah (Margin Bottom / Jarak Antar Kartu) */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-700">Margin Bawah / Jarak Antar Kartu (Margin Bottom)</span>
-                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
-                        {themeConfig.cardMarginBottom ?? 16} px
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={4}
-                      max={48}
-                      step={2}
-                      value={themeConfig.cardMarginBottom ?? 16}
-                      onChange={(e) => updateThemeConfig({ cardMarginBottom: Number(e.target.value) })}
-                      className="w-full accent-teal-600 cursor-pointer"
-                    />
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                      <span>4px (Kompak)</span>
-                      <span>24px</span>
-                      <span>48px (Ekstra)</span>
+                      <span>12px</span>
+                      <span>24px (Maksimal)</span>
                     </div>
                   </div>
                 </div>
@@ -922,18 +1000,20 @@ export const ThemeCustomizerModule: React.FC = () => {
                 {/* 5c. Padding Vertikal Isi Kartu (Padding Y) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700">Padding Vertikal Isi Kartu (Padding Atas & Bawah):</span>
+                    <span className="text-xs font-bold text-slate-700">Padding Vertikal Dalam Kartu (Tinggi Ruang Isi):</span>
                     <span className="text-[11px] font-mono text-slate-500 font-semibold">
-                      {(themeConfig.cardPaddingY || 'normal') === 'compact' && '12px (py-3)'}
-                      {(themeConfig.cardPaddingY || 'normal') === 'normal' && '20px (py-5 - Standar)'}
-                      {(themeConfig.cardPaddingY || 'normal') === 'relaxed' && '28px (py-7 - Lapang)'}
+                      {(themeConfig.cardPaddingY || 'normal') === 'ultra' && '6px (py-1.5 - Sangat Rapat)'}
+                      {(themeConfig.cardPaddingY || 'normal') === 'compact' && '12px (py-3 - Ringkas)'}
+                      {(themeConfig.cardPaddingY || 'normal') === 'normal' && '18px (py-4.5 - Standar)'}
+                      {(themeConfig.cardPaddingY || 'normal') === 'relaxed' && '26px (py-6.5 - Lapang)'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
-                      { id: 'compact', label: 'Ringkas (12px)', desc: 'Hemat tinggi' },
-                      { id: 'normal', label: 'Standar (20px)', desc: 'Proporsional seimbang' },
-                      { id: 'relaxed', label: 'Luas (28px)', desc: 'Ekstra lapang' },
+                      { id: 'ultra', label: 'Ultra Padat (6px)', desc: 'Ruang minimal, data rapat' },
+                      { id: 'compact', label: 'Ringkas (12px)', desc: 'Hemat tinggi kartu' },
+                      { id: 'normal', label: 'Standar (18px)', desc: 'Proporsional seimbang' },
+                      { id: 'relaxed', label: 'Luas (26px)', desc: 'Ekstra lapang santai' },
                     ].map((pad) => {
                       const isSelected = (themeConfig.cardPaddingY || 'normal') === pad.id;
                       return (
@@ -1628,24 +1708,24 @@ export const ThemeCustomizerModule: React.FC = () => {
           )}
         </div>
 
-        {/* Right Column: Live Simulator & Interactive Preview (5 Columns - Sticky & Locked) */}
-        <div className="lg:col-span-5 lg:sticky lg:top-0 z-20 space-y-2.5">
-          <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-3.5 shadow-sm space-y-2.5">
+        {/* Right Column: Live Simulator & Interactive Preview (5 Columns - Sticky & Locked at top, does not scroll away!) */}
+        <div className="lg:col-span-5 lg:sticky lg:top-1 z-30 space-y-2 self-start">
+          <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-3.5 shadow-sm space-y-2">
             {/* Preview Toolbar */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-1.5">
                 <Eye className="w-4 h-4 text-teal-600" />
-                <span className="text-xs font-bold text-slate-800">Pratinjau Langsung</span>
+                <span className="text-xs font-bold text-slate-800">Pratinjau Layar Penuh</span>
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[9px] border border-emerald-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live
+                  Terkunci & Live
                 </span>
               </div>
               <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('desktop')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer ${
                     previewDevice === 'desktop' ? 'bg-white shadow-2xs text-slate-800' : 'text-slate-500 hover:text-slate-800'
                   }`}
                   title="Pratinjau Layar Desktop"
@@ -1656,7 +1736,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('mobile')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer ${
                     previewDevice === 'mobile' ? 'bg-white shadow-2xs text-slate-800' : 'text-slate-500 hover:text-slate-800'
                   }`}
                   title="Pratinjau Layar HP / Mobile"
@@ -1667,10 +1747,10 @@ export const ThemeCustomizerModule: React.FC = () => {
               </div>
             </div>
 
-            {/* Simulated Canvas Box - Exactly Fitted (No Naik-Turun Needed!) */}
+            {/* Simulated Canvas Box - FULL DISPLAY: All elements fit 100% without inner scroll! */}
             {previewDevice === 'mobile' ? (
               <div
-                className="w-full max-w-[310px] mx-auto rounded-[28px] border-[4px] border-slate-800 shadow-xl overflow-hidden flex flex-col h-[385px] bg-slate-50 transition-all duration-200 relative"
+                className="w-full max-w-[310px] mx-auto rounded-[28px] border-[4px] border-slate-800 shadow-xl overflow-hidden flex flex-col h-[440px] bg-slate-50 transition-all duration-200 relative shrink-0"
                 style={{
                   backgroundColor:
                     themeConfig.backgroundStyle === 'warm-cream'
@@ -1683,14 +1763,14 @@ export const ThemeCustomizerModule: React.FC = () => {
                 }}
               >
                 {/* Smartphone Notch */}
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-3 bg-slate-800 rounded-full z-30 flex items-center justify-center">
+                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-2.5 bg-slate-800 rounded-full z-30 flex items-center justify-center pointer-events-none">
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-900 border border-slate-700/60 mr-1.5" />
                   <div className="w-6 h-0.5 rounded-full bg-slate-700" />
                 </div>
 
                 {/* Mobile Header */}
                 <div
-                  className="pt-4 px-3 pb-1.5 border-b border-slate-200/70 flex items-center justify-between text-xs z-20 shrink-0"
+                  className="pt-3.5 px-3 pb-1 border-b border-slate-200/70 flex items-center justify-between text-xs z-20 shrink-0"
                   style={{
                     backgroundColor:
                       themeConfig.headerStyle === 'dark-slate'
@@ -1703,60 +1783,91 @@ export const ThemeCustomizerModule: React.FC = () => {
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
                     <div
-                      className="w-5 h-5 rounded-md text-white flex items-center justify-center text-[10px] font-bold shrink-0"
+                      className="w-4 h-4 rounded-md text-white flex items-center justify-center text-[9px] font-bold shrink-0"
                       style={{ backgroundColor: themeConfig.primaryColor }}
                     >
-                      <School className="w-3 h-3" />
+                      <School className="w-2.5 h-2.5" />
                     </div>
-                    <span className="text-[11px] font-bold truncate">SIAKAD SEKOLAH</span>
+                    <span className="text-[10px] font-bold truncate">SIAKAD SEKOLAH</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: themeConfig.accentColor }} />
-                    <span className="text-[9px] font-semibold text-slate-500">Live</span>
+                    <span className="text-[8px] font-semibold text-slate-500">Live</span>
                   </div>
                 </div>
 
-                {/* Mobile Screen Body Content */}
-                <div className="flex-1 p-2 space-y-1.5 overflow-y-auto no-scrollbar">
+                {/* Mobile Screen Body Content - FULL DISPLAY NO INNER SCROLL */}
+                <div className="flex-1 px-2.5 py-1.5 flex flex-col justify-start overflow-hidden">
                   {/* Dynamic Greeting Hero Banner */}
                   <div
-                    className="theme-hero-banner p-2 rounded-xl text-white shadow-2xs flex items-center justify-between transition-all"
+                    className="theme-hero-banner px-2.5 py-1.5 rounded-xl text-white shadow-2xs flex items-center justify-between transition-all shrink-0"
                     style={{
                       background: `linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%)`,
-                      marginTop: `${Math.min(6, themeConfig.cardMarginTop ?? 0)}px`,
-                      marginBottom: `${Math.min(8, themeConfig.cardMarginBottom ?? 16)}px`,
+                      marginTop: `${themeConfig.cardMarginTop ?? 0}px`,
+                      marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
+                      paddingTop:
+                        (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                          ? '4px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                          ? '6px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                          ? '8px'
+                          : '12px',
+                      paddingBottom:
+                        (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                          ? '4px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                          ? '6px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                          ? '8px'
+                          : '12px',
                     }}
                   >
                     <div className="min-w-0">
-                      <p className="text-[8px] text-white/80 font-medium leading-none">Selamat Datang,</p>
-                      <h4 className="text-[11px] font-extrabold truncate mt-0.5">Akun SIAKAD</h4>
+                      <p className="text-[7.5px] text-white/80 font-medium leading-none">Selamat Datang,</p>
+                      <h4 className="text-[10.5px] font-extrabold truncate mt-0.5">Akun SIAKAD</h4>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[8px] font-bold shrink-0">
+                    <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[7.5px] font-bold shrink-0">
                       {themeConfig.preset === 'custom' ? 'Kustom' : activePresetInfo?.badge || themeConfig.preset}
                     </span>
                   </div>
 
                   {/* Core Theme Card (Identity) */}
                   <div
-                    className="theme-card p-2 transition text-xs"
+                    className="theme-card px-2.5 py-1.5 transition text-xs shrink-0"
                     style={{
-                      marginTop: `${Math.min(6, themeConfig.cardMarginTop ?? 0)}px`,
-                      marginBottom: `${Math.min(8, themeConfig.cardMarginBottom ?? 16)}px`,
+                      marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
+                      paddingTop:
+                        (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                          ? '4px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                          ? '6px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                          ? '8px'
+                          : '12px',
+                      paddingBottom:
+                        (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                          ? '4px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                          ? '6px'
+                          : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                          ? '8px'
+                          : '12px',
                     }}
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-7 h-7 rounded-lg text-white flex items-center justify-center font-bold text-xs shrink-0"
+                        className="w-6 h-6 rounded-lg text-white flex items-center justify-center font-bold text-xs shrink-0"
                         style={{ backgroundColor: themeConfig.primaryColor }}
                       >
-                        <GraduationCap className="w-4 h-4" />
+                        <GraduationCap className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h5 className="text-[10px] font-bold text-slate-800 truncate">{schoolProfile.name}</h5>
-                        <p className="text-[8px] text-slate-500 truncate">Akreditasi {schoolProfile.accreditation || 'A'} • 2024/2025</p>
+                        <h5 className="text-[9.5px] font-bold text-slate-800 truncate">{schoolProfile.name}</h5>
+                        <p className="text-[7.5px] text-slate-500 truncate">Akreditasi {schoolProfile.accreditation || 'A'} • 2024/2025</p>
                       </div>
                       <span
-                        className="px-1.5 py-0.5 rounded-full text-[8px] font-bold text-white shrink-0"
+                        className="px-1.5 py-0.5 rounded-full text-[7.5px] font-bold text-white shrink-0"
                         style={{ backgroundColor: themeConfig.primaryColor }}
                       >
                         Aktif
@@ -1765,28 +1876,78 @@ export const ThemeCustomizerModule: React.FC = () => {
                   </div>
 
                   {/* 2 Mini Metric Stats Cards */}
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="theme-card p-1.5 text-center">
-                      <span className="text-[8px] text-slate-500 block leading-tight">Total Siswa</span>
-                      <span className="text-xs font-black text-slate-800">1,248</span>
+                  <div
+                    className="grid grid-cols-2 gap-1.5 shrink-0"
+                    style={{
+                      marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
+                    }}
+                  >
+                    <div
+                      className="theme-card px-1.5 text-center"
+                      style={{
+                        paddingTop:
+                          (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                            ? '4px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                            ? '6px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                            ? '8px'
+                            : '12px',
+                        paddingBottom:
+                          (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                            ? '4px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                            ? '6px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                            ? '8px'
+                            : '12px',
+                      }}
+                    >
+                      <span className="text-[7.5px] text-slate-500 block leading-tight">Total Siswa</span>
+                      <span className="text-[11px] font-black text-slate-800">1,248</span>
                     </div>
-                    <div className="theme-card p-1.5 text-center">
-                      <span className="text-[8px] text-slate-500 block leading-tight">Kehadiran</span>
-                      <span className="text-xs font-black" style={{ color: themeConfig.primaryColor }}>98.4%</span>
+                    <div
+                      className="theme-card px-1.5 text-center"
+                      style={{
+                        paddingTop:
+                          (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                            ? '4px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                            ? '6px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                            ? '8px'
+                            : '12px',
+                        paddingBottom:
+                          (themeConfig.cardPaddingY || 'normal') === 'ultra'
+                            ? '4px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'compact'
+                            ? '6px'
+                            : (themeConfig.cardPaddingY || 'normal') === 'normal'
+                            ? '8px'
+                            : '12px',
+                      }}
+                    >
+                      <span className="text-[7.5px] text-slate-500 block leading-tight">Kehadiran</span>
+                      <span className="text-[11px] font-black" style={{ color: themeConfig.primaryColor }}>98.4%</span>
                     </div>
                   </div>
 
                   {/* Interactive Button Preview */}
-                  <div className="flex items-center justify-center gap-1.5 pt-0.5">
+                  <div
+                    className="flex items-center justify-center gap-1.5 pt-0.5 shrink-0"
+                    style={{
+                      marginBottom: `${Math.min(themeConfig.cardMarginBottom ?? 14, 6)}px`,
+                    }}
+                  >
                     <button
                       type="button"
-                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-white shadow-2xs"
+                      className="px-2.5 py-1 rounded-lg text-[9px] font-bold text-white shadow-2xs"
                       style={{ backgroundColor: themeConfig.primaryColor }}
                     >
                       Tombol Utama
                     </button>
                     <span
-                      className="px-2 py-0.5 rounded-full text-[9px] font-bold border"
+                      className="px-2 py-0.5 rounded-full text-[8.5px] font-bold border"
                       style={{
                         borderColor: `${themeConfig.primaryColor}55`,
                         backgroundColor: `${themeConfig.primaryColor}15`,
@@ -1799,7 +1960,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                 </div>
 
                 {/* Interactive Bottom Navigation Bar - Pinned at bottom of the phone screen */}
-                <div className="shrink-0 z-20 border-t border-slate-200/50">
+                <div className="shrink-0 z-20 border-t border-slate-200/50 mt-auto">
                   <BottomNavigation
                     currentModule={simulatedCurrentModule}
                     setCurrentModule={setSimulatedCurrentModule}
@@ -1810,7 +1971,7 @@ export const ThemeCustomizerModule: React.FC = () => {
               </div>
             ) : (
               <div
-                className="w-full rounded-xl border border-slate-300 shadow-md overflow-hidden flex flex-col h-[385px] bg-slate-50 transition-all duration-200 relative"
+                className="w-full rounded-xl border border-slate-300 shadow-md overflow-hidden flex flex-col h-[440px] bg-slate-50 transition-all duration-200 relative shrink-0"
                 style={{
                   backgroundColor:
                     themeConfig.backgroundStyle === 'warm-cream'
@@ -1870,13 +2031,15 @@ export const ThemeCustomizerModule: React.FC = () => {
                   </div>
 
                   {/* Main Desktop Content Pane */}
-                  <div className="flex-1 p-2 space-y-2 overflow-y-auto no-scrollbar flex flex-col justify-between">
+                  <div className="flex-1 p-2 space-y-2 overflow-hidden flex flex-col justify-between">
                     <div className="space-y-1.5">
                       {/* Hero Banner */}
                       <div
                         className="theme-hero-banner p-2 text-white shadow-2xs rounded-lg flex items-center justify-between"
                         style={{
                           background: `linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%)`,
+                          marginTop: `${themeConfig.cardMarginTop ?? 0}px`,
+                          marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
                         }}
                       >
                         <div className="min-w-0">
@@ -1900,7 +2063,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                     </div>
 
                     {/* Docked bottom navigation bar */}
-                    <div className="pt-1 border-t border-slate-200/60 shrink-0">
+                    <div className="pt-1 border-t border-slate-200/60 shrink-0 mt-auto">
                       <BottomNavigation
                         currentModule={simulatedCurrentModule}
                         setCurrentModule={setSimulatedCurrentModule}
@@ -1914,7 +2077,7 @@ export const ThemeCustomizerModule: React.FC = () => {
             )}
 
             {/* Quick Summary of Current Active Styles - Compact Strip */}
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600 grid grid-cols-2 gap-x-2 gap-y-1">
+            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600 grid grid-cols-2 gap-x-2 gap-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Preset:</span>
                 <span className="font-bold text-slate-800 truncate ml-1">{activePresetInfo?.name || 'Kustom'}</span>
@@ -1928,8 +2091,8 @@ export const ThemeCustomizerModule: React.FC = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Jarak Kartu:</span>
-                <span className="font-mono font-bold text-slate-800 text-[10px] truncate ml-1">
-                  {themeConfig.cardSpacingY || 'normal'} ({themeConfig.cardMarginTop ?? 0}px / {themeConfig.cardMarginBottom ?? 16}px)
+                <span className="font-mono font-bold text-emerald-700 text-[10px] truncate ml-1">
+                  {themeConfig.cardMarginBottom ?? 14}px ({themeConfig.cardSpacingY || 'normal'})
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -1942,6 +2105,202 @@ export const ThemeCustomizerModule: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Preview Button for Mobile Screens (< lg) */}
+      <div className="lg:hidden fixed bottom-20 right-4 z-40">
+        <button
+          type="button"
+          onClick={() => setShowMobilePreviewModal(true)}
+          className="px-4 py-2.5 rounded-full bg-teal-600 text-white font-bold text-xs shadow-xl hover:bg-teal-700 active:scale-95 transition flex items-center gap-2 border-2 border-white/60 cursor-pointer"
+          style={{ backgroundColor: themeConfig.primaryColor }}
+          title="Buka pratinjau tampilan layar"
+        >
+          <Eye className="w-4 h-4 text-white animate-pulse" />
+          <span>Lihat Pratinjau</span>
+        </button>
+      </div>
+
+      {/* Mobile Floating Preview Modal Drawer */}
+      {showMobilePreviewModal && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/70 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-4 shadow-2xl space-y-3 border border-slate-100 flex flex-col max-h-[95vh] overflow-y-auto sidebar-scroll">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <Smartphone className="w-4 h-4 text-teal-600" />
+                <span className="text-xs font-bold text-slate-800">Pratinjau Layar Penuh</span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[9px] border border-emerald-200">
+                  Live
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMobilePreviewModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Mobile Phone in Modal */}
+            <div
+              className="w-full max-w-[290px] mx-auto rounded-[28px] border-[4px] border-slate-800 shadow-xl overflow-hidden flex flex-col h-[430px] bg-slate-50 transition-all duration-200 relative shrink-0"
+              style={{
+                backgroundColor:
+                  themeConfig.backgroundStyle === 'warm-cream'
+                    ? '#faf7f2'
+                    : themeConfig.backgroundStyle === 'cool-gray'
+                    ? '#f1f5f9'
+                    : themeConfig.backgroundStyle === 'midnight-dark'
+                    ? '#0f172a'
+                    : '#f8fafc',
+              }}
+            >
+              {/* Smartphone Notch */}
+              <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-2.5 bg-slate-800 rounded-full z-30 flex items-center justify-center pointer-events-none">
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-900 border border-slate-700/60 mr-1.5" />
+                <div className="w-6 h-0.5 rounded-full bg-slate-700" />
+              </div>
+
+              {/* Mobile Header */}
+              <div
+                className="pt-3.5 px-3 pb-1 border-b border-slate-200/70 flex items-center justify-between text-xs z-20 shrink-0"
+                style={{
+                  backgroundColor:
+                    themeConfig.headerStyle === 'dark-slate'
+                      ? '#1e293b'
+                      : themeConfig.headerStyle === 'primary-tint'
+                      ? `${themeConfig.primaryColor}15`
+                      : '#ffffff',
+                  color: themeConfig.headerStyle === 'dark-slate' ? '#ffffff' : '#1e293b',
+                }}
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div
+                    className="w-4 h-4 rounded-md text-white flex items-center justify-center text-[9px] font-bold shrink-0"
+                    style={{ backgroundColor: themeConfig.primaryColor }}
+                  >
+                    <School className="w-2.5 h-2.5" />
+                  </div>
+                  <span className="text-[10px] font-bold truncate">SIAKAD SEKOLAH</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: themeConfig.accentColor }} />
+                  <span className="text-[8px] font-semibold text-slate-500">Live</span>
+                </div>
+              </div>
+
+              {/* Mobile Screen Body Content */}
+              <div className="flex-1 px-2 py-1 flex flex-col justify-start overflow-hidden">
+                {/* Dynamic Greeting Hero Banner */}
+                <div
+                  className="theme-hero-banner px-2 py-1.5 rounded-xl text-white shadow-2xs flex items-center justify-between transition-all shrink-0"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%)`,
+                    marginTop: `${themeConfig.cardMarginTop ?? 0}px`,
+                    marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
+                  }}
+                >
+                  <div className="min-w-0">
+                    <p className="text-[7.5px] text-white/80 font-medium leading-none">Selamat Datang,</p>
+                    <h4 className="text-[10px] font-extrabold truncate mt-0.5">Akun SIAKAD</h4>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[7.5px] font-bold shrink-0">
+                    {themeConfig.preset === 'custom' ? 'Kustom' : activePresetInfo?.badge || themeConfig.preset}
+                  </span>
+                </div>
+
+                {/* Core Theme Card (Identity) */}
+                <div
+                  className="theme-card px-2 py-1.5 transition text-xs shrink-0"
+                  style={{
+                    marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-lg text-white flex items-center justify-center font-bold text-xs shrink-0"
+                      style={{ backgroundColor: themeConfig.primaryColor }}
+                    >
+                      <GraduationCap className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h5 className="text-[9px] font-bold text-slate-800 truncate">{schoolProfile.name}</h5>
+                      <p className="text-[7px] text-slate-500 truncate">Akreditasi {schoolProfile.accreditation || 'A'} • 2024/2025</p>
+                    </div>
+                    <span
+                      className="px-1.5 py-0.5 rounded-full text-[7px] font-bold text-white shrink-0"
+                      style={{ backgroundColor: themeConfig.primaryColor }}
+                    >
+                      Aktif
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2 Mini Metric Stats Cards */}
+                <div
+                  className="grid grid-cols-2 gap-1.5 shrink-0"
+                  style={{
+                    marginBottom: `${themeConfig.cardMarginBottom ?? 14}px`,
+                  }}
+                >
+                  <div className="theme-card px-1.5 text-center">
+                    <span className="text-[7px] text-slate-500 block leading-tight">Total Siswa</span>
+                    <span className="text-[10px] font-black text-slate-800">1,248</span>
+                  </div>
+                  <div className="theme-card px-1.5 text-center">
+                    <span className="text-[7px] text-slate-500 block leading-tight">Kehadiran</span>
+                    <span className="text-[10px] font-black" style={{ color: themeConfig.primaryColor }}>98.4%</span>
+                  </div>
+                </div>
+
+                {/* Interactive Button Preview */}
+                <div
+                  className="flex items-center justify-center gap-1.5 pt-0.5 shrink-0"
+                  style={{
+                    marginBottom: `${Math.min(themeConfig.cardMarginBottom ?? 14, 6)}px`,
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="px-2.5 py-1 rounded-lg text-[9px] font-bold text-white shadow-2xs"
+                    style={{ backgroundColor: themeConfig.primaryColor }}
+                  >
+                    Tombol Utama
+                  </button>
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[8px] font-bold border"
+                    style={{
+                      borderColor: `${themeConfig.primaryColor}55`,
+                      backgroundColor: `${themeConfig.primaryColor}15`,
+                      color: themeConfig.primaryColor,
+                    }}
+                  >
+                    Aksen
+                  </span>
+                </div>
+              </div>
+
+              {/* Pinned Bottom Nav */}
+              <div className="shrink-0 z-20 border-t border-slate-200/50 mt-auto">
+                <BottomNavigation
+                  currentModule={simulatedCurrentModule}
+                  setCurrentModule={setSimulatedCurrentModule}
+                  onOpenMobileMenu={() => {}}
+                  isSimulatedPreview={true}
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowMobilePreviewModal(false)}
+              className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 transition cursor-pointer"
+            >
+              Tutup & Lanjutkan Pengaturan
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* JSON Import/Export Modal */}
       {showJsonModal && (

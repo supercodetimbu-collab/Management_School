@@ -593,18 +593,25 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       `;
     }
 
-    // Card Spacing Y Mapping
+    // Card Spacing Y Mapping - Support ultra (0-2px), compact (6px), normal (14px), relaxed (22px), spacious (32px)
     const spacingYMap: Record<string, string> = {
-      compact: '8px',
-      normal: '16px',
-      relaxed: '24px',
+      ultra: '2px',
+      compact: '6px',
+      normal: '14px',
+      relaxed: '22px',
       spacious: '32px',
     };
-    const cardSpacingY = spacingYMap[themeConfig.cardSpacingY || 'normal'] || '16px';
+    // Direct pixel link: if cardMarginBottom is set, directly link effective card vertical spacing
+    const effectiveSpacingY =
+      typeof themeConfig.cardMarginBottom === 'number'
+        ? `${themeConfig.cardMarginBottom}px`
+        : spacingYMap[themeConfig.cardSpacingY || 'normal'] || '14px';
+
     const cardMarginTop = typeof themeConfig.cardMarginTop === 'number' ? `${themeConfig.cardMarginTop}px` : '0px';
-    const cardMarginBottom = typeof themeConfig.cardMarginBottom === 'number' ? `${themeConfig.cardMarginBottom}px` : '16px';
+    const cardMarginBottom = typeof themeConfig.cardMarginBottom === 'number' ? `${themeConfig.cardMarginBottom}px` : '14px';
 
     const paddingYMap: Record<string, string> = {
+      ultra: '0.45rem',
       compact: '0.75rem',
       normal: '1.25rem',
       relaxed: '1.75rem',
@@ -620,10 +627,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           padding-bottom: 0.35rem !important;
         }
         main .space-y-6 {
-          gap: 1rem !important;
+          gap: 0.75rem !important;
         }
         main .space-y-5 {
-          gap: 0.75rem !important;
+          gap: 0.5rem !important;
         }
       `;
     }
@@ -636,7 +643,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         --theme-accent-rgb: ${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b};
         --theme-card-radius: ${radiusMap[themeConfig.cardRadius]};
         --theme-card-shadow: ${shadowMap[themeConfig.cardShadow]};
-        --theme-card-spacing-y: ${cardSpacingY};
+        --theme-card-spacing-y: ${effectiveSpacingY};
         --theme-card-margin-top: ${cardMarginTop};
         --theme-card-margin-bottom: ${cardMarginBottom};
         --theme-card-padding-y: ${cardPaddingY};
@@ -654,7 +661,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         border-radius: var(--theme-card-radius) !important;
         box-shadow: var(--theme-card-shadow) !important;
         margin-top: var(--theme-card-margin-top) !important;
-        margin-bottom: var(--theme-card-margin-bottom) !important;
+        margin-bottom: var(--theme-card-spacing-y) !important;
       }
 
       /* Dynamically Adapt Core Cards across all modules and dashboards */
@@ -666,12 +673,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         box-shadow: var(--theme-card-shadow) !important;
         ${cardBgCss}
         ${cardBorderCss}
-        margin-top: var(--theme-card-margin-top) !important;
-        margin-bottom: var(--theme-card-margin-bottom) !important;
+        padding-top: var(--theme-card-padding-y) !important;
+        padding-bottom: var(--theme-card-padding-y) !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      /* Vertical card spacing across lists and grids */
+      /* Vertical card spacing across lists and grids - direct single source of truth */
       main .space-y-6 > * + * {
         margin-top: var(--theme-card-spacing-y) !important;
       }
@@ -679,7 +686,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         margin-top: var(--theme-card-spacing-y) !important;
       }
       main .space-y-4 > * + * {
-        margin-top: calc(var(--theme-card-spacing-y) * 0.75) !important;
+        margin-top: calc(var(--theme-card-spacing-y) * 0.8) !important;
       }
       main .grid {
         row-gap: var(--theme-card-spacing-y) !important;

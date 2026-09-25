@@ -54,8 +54,8 @@ export type CardRadiusType = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 export type CardBorderStyle = 'none' | 'subtle' | 'tinted' | 'prominent';
 export type CardShadowType = 'none' | 'sm' | 'md' | 'lg' | 'glow';
 export type CardBgType = 'pure-white' | 'frosted-glass' | 'soft-tint' | 'off-white' | 'dark-slate';
-export type CardSpacingType = 'compact' | 'normal' | 'relaxed' | 'spacious';
-export type CardPaddingYType = 'compact' | 'normal' | 'relaxed';
+export type CardSpacingType = 'ultra' | 'compact' | 'normal' | 'relaxed' | 'spacious';
+export type CardPaddingYType = 'ultra' | 'compact' | 'normal' | 'relaxed';
 
 export type BackgroundStyleType =
   | 'neutral-slate'
@@ -109,7 +109,7 @@ export interface ThemeConfig {
   // Card Spacing (Atas & Bawah)
   cardSpacingY?: CardSpacingType;
   cardMarginTop?: number; // in px (0-32)
-  cardMarginBottom?: number; // in px (4-40)
+  cardMarginBottom?: number; // in px (0-40)
   cardPaddingY?: CardPaddingYType;
 
   // Bottom Navigation Bar & Icons Customization
