@@ -11,6 +11,7 @@ import {
   HeaderStyleType,
   UiDensityType,
 } from '../types';
+import { subscribeToThemeConfig, saveThemeConfigToFirebase } from '../lib/firebase';
 
 export interface ThemePresetOption {
   id: ThemePresetId;
@@ -191,9 +192,12 @@ interface ThemeContextType {
   themeConfig: ThemeConfig;
   updateThemeConfig: (partial: Partial<ThemeConfig>) => void;
   applyPreset: (presetId: ThemePresetId) => void;
-  resetTheme: () => void;
-  saveTheme: () => void;
+  resetTheme: (author?: { id?: string; name?: string; role?: string }) => Promise<void>;
+  saveTheme: (author?: { id?: string; name?: string; role?: string }) => Promise<void>;
   isDirty: boolean;
+  isCloudSynced: boolean;
+  isSavingToCloud: boolean;
+  lastSyncedAt: string | null;
   exportThemeJSON: () => string;
   importThemeJSON: (jsonStr: string) => boolean;
   activePresetInfo: ThemePresetOption | undefined;
@@ -229,14 +233,62 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [savedConfig, setSavedConfig] = useState<ThemeConfig>(themeConfig);
+  const [isCloudSynced, setIsCloudSynced] = useState<boolean>(false);
+  const [isSavingToCloud, setIsSavingToCloud] = useState<boolean>(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
 
   const isDirty = JSON.stringify(themeConfig) !== JSON.stringify(savedConfig);
+
+  // Synchronize with remote Firestore theme_settings in real-time across ALL accounts
+  useEffect(() => {
+    const unsubTheme = subscribeToThemeConfig((remoteConfig) => {
+      if (remoteConfig && remoteConfig.primaryColor) {
+        console.log('[ThemeContext] Real-time theme received from cloud Firestore:', remoteConfig.preset, remoteConfig.primaryColor);
+        setThemeConfigState(remoteConfig);
+        setSavedConfig(remoteConfig);
+        setIsCloudSynced(true);
+        setLastSyncedAt(new Date().toLocaleTimeString('id-ID'));
+        try {
+          localStorage.setItem(STORAGE_THEME_KEY, JSON.stringify(remoteConfig));
+        } catch {
+          // ignore
+        }
+      }
+    });
+
+    // Cross-tab and window event listener
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_THEME_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setThemeConfigState(parsed);
+          setSavedConfig(parsed);
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    const handleCustomSync = (e: any) => {
+      if (e.detail?.config) {
+        setThemeConfigState(e.detail.config);
+        setSavedConfig(e.detail.config);
+      }
+    };
+    window.addEventListener('siakad_theme_changed', handleCustomSync);
+
+    return () => {
+      if (typeof unsubTheme === 'function') unsubTheme();
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('siakad_theme_changed', handleCustomSync);
+    };
+  }, []);
 
   const updateThemeConfig = useCallback((partial: Partial<ThemeConfig>) => {
     setThemeConfigState((prev) => {
       const updated = { ...prev, ...partial };
       if (!partial.preset) {
-        // If customizing individual attributes, mark preset as custom if values differ
         updated.preset = 'custom';
       }
       return updated;
@@ -250,18 +302,46 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const resetTheme = useCallback(() => {
+  const resetTheme = useCallback(async (author?: { id?: string; name?: string; role?: string }) => {
     setThemeConfigState(DEFAULT_THEME_CONFIG);
-    localStorage.removeItem(STORAGE_THEME_KEY);
     setSavedConfig(DEFAULT_THEME_CONFIG);
+    try {
+      localStorage.setItem(STORAGE_THEME_KEY, JSON.stringify(DEFAULT_THEME_CONFIG));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('siakad_theme_changed', { detail: { config: DEFAULT_THEME_CONFIG } })
+        );
+      }
+      await saveThemeConfigToFirebase(DEFAULT_THEME_CONFIG, author);
+      setIsCloudSynced(true);
+      setLastSyncedAt(new Date().toLocaleTimeString('id-ID'));
+    } catch (e) {
+      console.error('Failed to reset theme to cloud', e);
+    }
   }, []);
 
-  const saveTheme = useCallback(() => {
+  const saveTheme = useCallback(async (author?: { id?: string; name?: string; role?: string }) => {
+    setIsSavingToCloud(true);
     try {
+      // 1. Save locally for instant offline cache
       localStorage.setItem(STORAGE_THEME_KEY, JSON.stringify(themeConfig));
       setSavedConfig(themeConfig);
+
+      // 2. Dispatch cross-context event in current window
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('siakad_theme_changed', { detail: { config: themeConfig } })
+        );
+      }
+
+      // 3. Save to Firebase Firestore to synchronize across ALL roles & devices
+      await saveThemeConfigToFirebase(themeConfig, author);
+      setIsCloudSynced(true);
+      setLastSyncedAt(new Date().toLocaleTimeString('id-ID'));
     } catch (e) {
-      console.error('Failed to save theme to localStorage', e);
+      console.error('Failed to save theme to cloud Firestore', e);
+    } finally {
+      setIsSavingToCloud(false);
     }
   }, [themeConfig]);
 
@@ -320,7 +400,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     let cardBgCss = 'background-color: #ffffff; color: #1e293b;';
     if (themeConfig.cardBg === 'frosted-glass') {
       cardBgCss =
-        'background-color: rgba(255, 255, 255, 0.84) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important;';
+        'background-color: rgba(255, 255, 255, 0.86) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important;';
     } else if (themeConfig.cardBg === 'soft-tint') {
       cardBgCss = `background-color: rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.04) !important;`;
     } else if (themeConfig.cardBg === 'off-white') {
@@ -364,6 +444,114 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       appBgCss = 'background-color: #0f172a; color: #f8fafc;';
     }
 
+    // Sidebar custom styling
+    let sidebarCustomCss = '';
+    if (themeConfig.sidebarStyle === 'dark-navy') {
+      sidebarCustomCss = `
+        aside, .sidebar-container {
+          background-color: #0f172a !important;
+          color: #f8fafc !important;
+          border-color: #1e293b !important;
+        }
+        aside .bg-white {
+          background-color: #0f172a !important;
+          color: #f8fafc !important;
+        }
+        aside .border-slate-100, aside .border-slate-200 {
+          border-color: #1e293b !important;
+        }
+        aside .text-slate-800 {
+          color: #f8fafc !important;
+        }
+        aside .text-slate-600, aside .text-slate-500 {
+          color: #94a3b8 !important;
+        }
+      `;
+    } else if (themeConfig.sidebarStyle === 'frosted-glass') {
+      sidebarCustomCss = `
+        aside, .sidebar-container {
+          background-color: rgba(255, 255, 255, 0.82) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+        }
+        aside .bg-white {
+          background-color: transparent !important;
+        }
+      `;
+    } else if (themeConfig.sidebarStyle === 'primary-gradient') {
+      sidebarCustomCss = `
+        aside, .sidebar-container {
+          background: linear-gradient(180deg, ${themeConfig.primaryColor} 0%, #0f172a 100%) !important;
+          color: #ffffff !important;
+          border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+        aside .bg-white {
+          background-color: transparent !important;
+        }
+        aside .border-slate-100, aside .border-slate-200 {
+          border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+        aside .text-slate-800, aside .text-slate-600, aside .text-slate-500, aside .text-slate-400 {
+          color: #f1f5f9 !important;
+        }
+      `;
+    }
+
+    // Header custom styling
+    let headerCustomCss = '';
+    if (themeConfig.headerStyle === 'primary-tint') {
+      headerCustomCss = `
+        header {
+          background-color: rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.08) !important;
+          backdrop-filter: blur(14px) !important;
+          -webkit-backdrop-filter: blur(14px) !important;
+        }
+      `;
+    } else if (themeConfig.headerStyle === 'glass-blur') {
+      headerCustomCss = `
+        header {
+          background-color: rgba(255, 255, 255, 0.84) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+        }
+      `;
+    } else if (themeConfig.headerStyle === 'dark-slate') {
+      headerCustomCss = `
+        header {
+          background-color: #0f172a !important;
+          color: #f8fafc !important;
+          border-color: #1e293b !important;
+        }
+        header .text-slate-800 {
+          color: #f8fafc !important;
+        }
+        header .text-slate-500 {
+          color: #94a3b8 !important;
+        }
+        header .bg-slate-100 {
+          background-color: #1e293b !important;
+          color: #f8fafc !important;
+        }
+      `;
+    }
+
+    // Density mapping
+    let densityCss = '';
+    if (themeConfig.uiDensity === 'compact') {
+      densityCss = `
+        main table td, main table th {
+          padding-top: 0.35rem !important;
+          padding-bottom: 0.35rem !important;
+        }
+        main .space-y-6 {
+          gap: 1rem !important;
+        }
+        main .space-y-5 {
+          gap: 0.75rem !important;
+        }
+      `;
+    }
+
     const cssContent = `
       :root {
         --theme-primary: ${themeConfig.primaryColor};
@@ -379,7 +567,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ${appBgCss}
       }
 
-      /* Dynamically Adapt Core Cards */
+      /* Dynamic Hero/Greeting Banners across ALL roles (Admin, Guru, Siswa, Ortu, Kepsek) */
+      main .rounded-3xl[class*="from-"],
+      .theme-hero-banner {
+        background: linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%) !important;
+        border-radius: var(--theme-card-radius) !important;
+        box-shadow: var(--theme-card-shadow) !important;
+      }
+
+      /* Dynamically Adapt Core Cards across all modules and dashboards */
       .theme-card,
       main .bg-white.rounded-2xl,
       main .bg-white.rounded-3xl,
@@ -422,39 +618,63 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       /* Primary Theme Buttons & Active States */
       .bg-teal-600,
       .bg-teal-700,
+      .bg-teal-800,
       button.bg-teal-600,
       button.bg-teal-700,
+      button.bg-teal-800,
       .theme-bg-primary {
         background-color: ${themeConfig.primaryColor} !important;
       }
 
       .hover\\:bg-teal-700:hover,
+      .hover\\:bg-teal-800:hover,
       button.hover\\:bg-teal-700:hover,
+      button.hover\\:bg-teal-800:hover,
       .theme-bg-primary-hover:hover {
         filter: brightness(0.92);
       }
 
       .text-teal-600,
       .text-teal-700,
+      .text-teal-800,
       .theme-text-primary {
         color: ${themeConfig.primaryColor} !important;
       }
 
+      .border-teal-400,
       .border-teal-500,
       .border-teal-600,
       .border-teal-700,
+      .border-teal-800,
       .theme-border-primary {
         border-color: ${themeConfig.primaryColor} !important;
       }
 
-      .bg-teal-50 {
-        background-color: rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.09) !important;
+      .bg-teal-50,
+      .bg-teal-100 {
+        background-color: rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.1) !important;
       }
 
       .border-teal-100,
-      .border-teal-200 {
+      .border-teal-200,
+      .border-teal-300 {
         border-color: rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.25) !important;
       }
+
+      /* Active Sidebar navigation items */
+      aside button.bg-teal-600,
+      aside button.bg-teal-700 {
+        background-color: ${themeConfig.primaryColor} !important;
+      }
+
+      /* Navigation Drawer & Mobile items */
+      nav.fixed.bottom-0 button.text-teal-600 {
+        color: ${themeConfig.primaryColor} !important;
+      }
+
+      ${sidebarCustomCss}
+      ${headerCustomCss}
+      ${densityCss}
 
       ::selection {
         background-color: ${themeConfig.primaryColor};
@@ -482,6 +702,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         resetTheme,
         saveTheme,
         isDirty,
+        isCloudSynced,
+        isSavingToCloud,
+        lastSyncedAt,
         exportThemeJSON,
         importThemeJSON,
         activePresetInfo,

@@ -17,7 +17,7 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { ChatMessage, NotificationItem, Announcement, DatabaseBackupLog, DatabaseSystemConfig, SchoolProfile } from '../types';
+import { ChatMessage, NotificationItem, Announcement, DatabaseBackupLog, DatabaseSystemConfig, SchoolProfile, ThemeConfig } from '../types';
 
 let app: FirebaseApp;
 let db: Firestore | null = null;
@@ -463,6 +463,81 @@ export async function saveSchoolProfileToFirebase(profile: SchoolProfile) {
     console.log('[Firestore] SchoolProfile synchronized to cloud:', profile.name);
   } catch (err) {
     console.warn('[Firestore] Failed to save SchoolProfile to cloud:', err);
+  }
+}
+
+// ----------------------------------------------------
+// 7. REAL-TIME THEME CONFIGURATION (All Roles: Admin, Guru, Siswa, Ortu, Kepsek)
+// ----------------------------------------------------
+const THEME_CONFIG_PATH = 'system_config';
+const THEME_CONFIG_ID = 'theme_settings';
+
+export function subscribeToThemeConfig(callback: (config: ThemeConfig) => void): Unsubscribe | (() => void) {
+  if (!db) return () => {};
+  try {
+    const docRef = doc(db, THEME_CONFIG_PATH, THEME_CONFIG_ID);
+    return onSnapshot(
+      docRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as ThemeConfig;
+          if (data && data.primaryColor) {
+            callback(data);
+          }
+        }
+      },
+      (err) => {
+        handleFirestoreError(err, OperationType.GET, `${THEME_CONFIG_PATH}/${THEME_CONFIG_ID}`);
+      }
+    );
+  } catch (err) {
+    console.warn('[Firestore] Failed to subscribe to ThemeConfig:', err);
+    return () => {};
+  }
+}
+
+export async function saveThemeConfigToFirebase(
+  config: ThemeConfig,
+  author?: { id?: string; name?: string; role?: string }
+): Promise<void> {
+  if (!db) return;
+  try {
+    const docRef = doc(db, THEME_CONFIG_PATH, THEME_CONFIG_ID);
+    const payload = {
+      ...config,
+      updatedAt: Date.now(),
+      updatedBy: author?.name || 'Administrator',
+      updatedByRole: author?.role || 'admin',
+    };
+    await setDoc(docRef, payload, { merge: true });
+
+    // Also mirror to SchoolProfile document for consistency
+    const schoolProfileDocRef = doc(db, SCHOOL_PROFILE_PATH, SCHOOL_PROFILE_ID);
+    await setDoc(
+      schoolProfileDocRef,
+      {
+        themeColor: config.primaryColor,
+        themeConfig: config,
+      },
+      { merge: true }
+    );
+
+    // Broadcast live update event so all connected devices and users get instant pulse
+    await broadcastUpdateToFirebase({
+      type: 'THEME_UPDATED',
+      module: 'Tema & Tampilan',
+      action: 'Kustomisasi Tema Diperbarui',
+      details: `Tema visual sekolah diperbarui (${config.preset}) oleh ${author?.name || 'Admin'}. Semua akun tersinkronisasi otomatis.`,
+      authorId: author?.id || 'admin',
+      authorName: author?.name || 'Administrator',
+      authorRole: author?.role || 'admin',
+      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      dataSnapshot: config,
+    });
+
+    console.log('[Firestore] Theme successfully synchronized across all user roles:', config.preset, config.primaryColor);
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, `${THEME_CONFIG_PATH}/${THEME_CONFIG_ID}`);
   }
 }
 

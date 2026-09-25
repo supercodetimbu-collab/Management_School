@@ -103,9 +103,35 @@
         "themeColor": { "type": "string" }
       },
       "required": ["name", "npsn"]
+    },
+    "ThemeConfig": {
+      "title": "ThemeConfig",
+      "description": "Global school theme and appearance configuration synchronized across all user roles and clients",
+      "type": "object",
+      "properties": {
+        "preset": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "accentColor": { "type": "string" },
+        "cardRadius": { "type": "string" },
+        "cardBorderStyle": { "type": "string" },
+        "cardShadow": { "type": "string" },
+        "cardBg": { "type": "string" },
+        "backgroundStyle": { "type": "string" },
+        "sidebarStyle": { "type": "string" },
+        "headerStyle": { "type": "string" },
+        "uiDensity": { "type": "string" },
+        "enableCardHeaderStripe": { "type": "boolean" },
+        "updatedAt": { "type": "number" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["primaryColor", "cardRadius"]
     }
   },
   "firestore": {
+    "/system_config/theme_settings": {
+      "schema": "ThemeConfig",
+      "description": "Global active theme and styling configurations synchronized in real-time across all users"
+    },
     "/system_config/school_profile": {
       "schema": "SchoolProfile",
       "description": "Global official school identity profile synchronized across all accounts and clients"

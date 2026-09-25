@@ -12,6 +12,7 @@ import {
   Moon,
   Check,
   RotateCcw,
+  RotateCw,
   Save,
   Download,
   Upload,
@@ -56,6 +57,9 @@ export const ThemeCustomizerModule: React.FC = () => {
     resetTheme,
     saveTheme,
     isDirty,
+    isCloudSynced,
+    isSavingToCloud,
+    lastSyncedAt,
     exportThemeJSON,
     importThemeJSON,
     activePresetInfo,
@@ -102,18 +106,37 @@ export const ThemeCustomizerModule: React.FC = () => {
     { label: 'Slate Soft', hex: '#64748b' },
   ];
 
-  const handleSave = () => {
-    saveTheme();
-    // Also sync primary theme color to SchoolProfile
+  const handleSave = async () => {
+    await saveTheme({
+      id: currentUser?.id,
+      name: currentUser?.name,
+      role: currentRole,
+    });
+    // Also sync primary theme color & config to SchoolProfile
     updateSchoolProfile({
       themeColor: themeConfig.primaryColor,
       themeConfig: themeConfig,
     });
     if (currentUser) {
-      logAction('UPDATE_THEME', 'Tema & Tampilan', `Kustomisasi tema diperbarui: preset ${themeConfig.preset}, warna ${themeConfig.primaryColor}`, currentUser);
+      logAction('UPDATE_THEME', 'Tema & Tampilan', `Kustomisasi tema tersinkronisasi ke seluruh akun: preset ${themeConfig.preset}, warna ${themeConfig.primaryColor}`, currentUser);
     }
     setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    setTimeout(() => setSaveSuccess(false), 4000);
+  };
+
+  const handleReset = async () => {
+    if (confirm('Kembalikan seluruh tema ke pengaturan bawaan Zamrud SIAKAD untuk seluruh akun?')) {
+      await resetTheme({
+        id: currentUser?.id,
+        name: currentUser?.name,
+        role: currentRole,
+      });
+      updateSchoolProfile({
+        themeColor: '#0f766e',
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }
   };
 
   const handleCopyJson = () => {
@@ -186,7 +209,7 @@ export const ThemeCustomizerModule: React.FC = () => {
                 setJsonInput(exportThemeJSON());
                 setShowJsonModal(true);
               }}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer"
               title="Ekspor atau Impor konfigurasi tema JSON"
             >
               <Download className="w-3.5 h-3.5" />
@@ -194,8 +217,8 @@ export const ThemeCustomizerModule: React.FC = () => {
             </button>
 
             <button
-              onClick={resetTheme}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition flex items-center gap-1.5"
+              onClick={handleReset}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition flex items-center gap-1.5 cursor-pointer"
               title="Reset ke tema bawaan SIAKAD"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -204,34 +227,58 @@ export const ThemeCustomizerModule: React.FC = () => {
 
             <button
               onClick={handleSave}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm transition flex items-center gap-2 transform active:scale-95"
+              disabled={isSavingToCloud}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm transition flex items-center gap-2 transform active:scale-95 cursor-pointer disabled:opacity-75"
               style={{ backgroundColor: themeConfig.primaryColor }}
             >
-              {saveSuccess ? (
+              {isSavingToCloud ? (
+                <>
+                  <RotateCw className="w-4 h-4 animate-spin text-white" />
+                  <span>Menyinkronkan...</span>
+                </>
+              ) : saveSuccess ? (
                 <>
                   <CheckCircle2 className="w-4 h-4 text-white" />
-                  <span>Tersimpan!</span>
+                  <span>Tersinkronisasi!</span>
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 text-white" />
-                  <span>Simpan Perubahan</span>
+                  <span>Simpan & Sinkronkan</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
+        {/* Cloud Synchronization Status Indicator */}
+        <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Sinkronisasi Otomatis: Aktif untuk Guru, Murid, Ortu & Kepsek
+            </span>
+            {lastSyncedAt && (
+              <span className="text-slate-400 text-[11px]">
+                Sinkron terakhir: {lastSyncedAt}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-500">
+            Setiap perubahan tema tersimpan di cloud Firestore & langsung diterapkan ke seluruh pengguna.
+          </p>
+        </div>
+
         {/* Unsaved Feedback Banner */}
         {isDirty && (
-          <div className="mt-4 p-3 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-between text-xs text-amber-800">
+          <div className="mt-3 p-3 rounded-2xl bg-amber-50/90 border border-amber-200 flex items-center justify-between text-xs text-amber-800">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>Perubahan visual aktif pada sesi ini. Klik <strong>Simpan Perubahan</strong> untuk menetapkannya sebagai tema permanen sekolah.</span>
+              <span>Perubahan tema belum disinkronkan ke cloud. Klik <strong>Simpan & Sinkronkan</strong> agar akun Guru, Murid, Ortu, dan Kepsek ikut berubah.</span>
             </div>
             <button
               onClick={handleSave}
-              className="font-bold underline hover:text-amber-900 shrink-0 ml-2"
+              className="font-bold underline hover:text-amber-900 shrink-0 ml-2 cursor-pointer"
             >
               Simpan Sekarang
             </button>

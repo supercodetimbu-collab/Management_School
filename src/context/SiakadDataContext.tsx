@@ -544,15 +544,18 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     });
 
-    // 5. Official School Profile sync across all devices and dashboards
+    // 5. Official School Profile & Theme sync across all devices and dashboards
     const unsubSchoolProfile = subscribeToSchoolProfile((remoteProfile) => {
       if (remoteProfile && remoteProfile.name) {
         setData((prev: any) => {
-          if (
+          const isSame =
             prev.schoolProfile?.name === remoteProfile.name &&
             prev.schoolProfile?.npsn === remoteProfile.npsn &&
-            prev.schoolProfile?.address === remoteProfile.address
-          ) {
+            prev.schoolProfile?.address === remoteProfile.address &&
+            prev.schoolProfile?.themeColor === remoteProfile.themeColor &&
+            JSON.stringify(prev.schoolProfile?.themeConfig) === JSON.stringify(remoteProfile.themeConfig);
+
+          if (isSame) {
             return prev;
           }
           return {
@@ -565,9 +568,16 @@ export const SiakadDataProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('siakad_school_updated', {
-              detail: { name: remoteProfile.name },
+              detail: { name: remoteProfile.name, profile: remoteProfile },
             })
           );
+          if (remoteProfile.themeConfig) {
+            window.dispatchEvent(
+              new CustomEvent('siakad_theme_changed', {
+                detail: { config: remoteProfile.themeConfig },
+              })
+            );
+          }
           try {
             localStorage.setItem('siakad_school_profile', JSON.stringify(remoteProfile));
           } catch {
