@@ -102,23 +102,23 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
 
   return (
     <div className="space-y-6">
-      {/* Teacher Greeting */}
-      <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-teal-700 to-teal-800 text-white p-5 sm:p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Teacher Greeting - Clean White Card */}
+      <div className="theme-card bg-white text-slate-800 p-5 sm:p-8 rounded-3xl border border-slate-200 shadow-2xs relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-2">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/15 text-blue-100 text-xs font-semibold">
+              <span className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
                 Tenaga Pendidik & Pengajar
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-xs">
-                <School className="w-3.5 h-3.5 text-white" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200">
+                <School className="w-3.5 h-3.5 text-slate-600" />
                 <span>{schoolProfile.name}</span>
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-800">
               Selamat Mengajar, {currentUser?.name || 'Bpk. Hendra Gunawan, M.Pd'} 👨‍🏫
             </h1>
-            <p className="text-blue-100 text-xs sm:text-sm mt-1">
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">
               Guru Mata Pelajaran Matematika • Wali Kelas X MIPA 1 • {schoolProfile.name}
             </p>
           </div>
@@ -127,18 +127,18 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
             <button
               onClick={handleRefreshScreen}
               disabled={isRefreshing}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-75"
               title="Segarkan tampilan layar dan sinkronkan data terbaru"
             >
-              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-teal-200' : 'text-white'}`} />
+              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-slate-600' : 'text-slate-600'}`} />
               <span>{isRefreshing ? 'Menyegarkan...' : 'Refresh Layar'}</span>
             </button>
 
             <button
               onClick={() => setCurrentModule('attendance')}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white text-teal-800 hover:bg-teal-50 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
             >
-              <ClipboardCheck className="w-4 h-4 text-teal-600" />
+              <ClipboardCheck className="w-4 h-4 text-white" />
               <span>Presensi Siswa</span>
             </button>
           </div>
@@ -150,18 +150,18 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
         {/* Jadwal Mengajar */}
         <div
           onClick={() => setCurrentModule('schedules')}
-          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-teal-400 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
+          className="theme-card bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-slate-300 hover:shadow-xs transition cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Jadwal Mengajar</span>
-            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 group-hover:bg-slate-800 group-hover:text-white flex items-center justify-center transition flex-shrink-0">
               <Calendar className="w-5 h-5" />
             </div>
           </div>
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">{mySchedules.length}</span>
-              <span className="text-xs font-semibold text-teal-600">Sesi</span>
+              <span className="text-xs font-semibold text-slate-600">Sesi</span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">Terdaftar minggu ini</p>
           </div>
@@ -344,15 +344,15 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
           <div>
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-teal-600" />
+                <Clock className="w-4 h-4 text-slate-700" />
                 <h3 className="text-sm font-bold text-slate-800">Jadwal Mengajar</h3>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 border border-teal-200/60 text-teal-800">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 border border-slate-200 text-slate-700">
                   {currentDayName}
                 </span>
               </div>
               <button
                 onClick={() => setCurrentModule('schedules')}
-                className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-slate-700 hover:text-slate-900 hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Semua Jadwal</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -365,7 +365,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                 onClick={() => setSelectedDayTab('Hari Ini')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex-shrink-0 cursor-pointer ${
                   selectedDayTab === 'Hari Ini'
-                    ? 'bg-teal-600 text-white shadow-2xs'
+                    ? 'bg-slate-800 text-white shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -377,7 +377,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                   onClick={() => setSelectedDayTab(d)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex-shrink-0 cursor-pointer ${
                     selectedDayTab === d
-                      ? 'bg-teal-600 text-white shadow-2xs'
+                      ? 'bg-slate-800 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
@@ -388,7 +388,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                 onClick={() => setSelectedDayTab('Semua')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex-shrink-0 cursor-pointer ${
                   selectedDayTab === 'Semua'
-                    ? 'bg-teal-600 text-white shadow-2xs'
+                    ? 'bg-slate-800 text-white shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -399,8 +399,8 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
             {/* Schedule Cards List */}
             <div className="space-y-2.5">
               {displaySchedules.length === 0 ? (
-                <div className="text-center py-7 px-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                  <Calendar className="w-7 h-7 text-teal-600 mx-auto mb-2 opacity-70" />
+                <div className="text-center py-7 px-4 bg-white rounded-2xl border border-slate-100">
+                  <Calendar className="w-7 h-7 text-slate-400 mx-auto mb-2 opacity-70" />
                   <p className="text-xs font-bold text-slate-700">
                     Tidak ada jadwal mengajar pada hari {selectedDayTab === 'Hari Ini' ? currentDayName : selectedDayTab}
                   </p>
@@ -411,13 +411,13 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                     <div className="flex items-center justify-center gap-2 mt-3">
                       <button
                         onClick={() => setSelectedDayTab(availableDays[0])}
-                        className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold transition cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                       >
                         Buka Jadwal Hari {availableDays[0]} →
                       </button>
                       <button
                         onClick={() => setSelectedDayTab('Semua')}
-                        className="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                       >
                         Semua Hari
                       </button>
@@ -428,16 +428,16 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                 displaySchedules.map((sch) => (
                   <div
                     key={sch.id}
-                    className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200/80 hover:border-teal-300 hover:bg-white transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                    className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                   >
                     <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-                      {/* Time Badge - Proportional, balanced, consistent */}
-                      <div className="flex flex-col items-center justify-center px-2.5 py-1.5 rounded-xl bg-teal-50 border border-teal-100/90 text-teal-900 flex-shrink-0 min-w-[95px] text-center">
-                        <div className="flex items-center gap-1 text-xs font-bold text-teal-800">
-                          <Clock className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+                      {/* Time Badge - Clean Slate/White */}
+                      <div className="flex flex-col items-center justify-center px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 flex-shrink-0 min-w-[95px] text-center">
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-800">
+                          <Clock className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
                           <span>{sch.startTime} - {sch.endTime}</span>
                         </div>
-                        <div className="text-[10px] font-medium text-teal-600/90 mt-0.5 flex items-center justify-center gap-1">
+                        <div className="text-[10px] font-medium text-slate-500 mt-0.5 flex items-center justify-center gap-1">
                           <span>{sch.day}</span>
                           <span>•</span>
                           <span>{getDurationMinutes(sch.startTime, sch.endTime)}</span>
@@ -450,7 +450,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                           <h4 className="text-xs sm:text-sm font-bold text-slate-800 truncate">
                             {sch.subjectName}
                           </h4>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200/40">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
                             {sch.className}
                           </span>
                         </div>
@@ -472,7 +472,7 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ setCurrentModule }
                       </span>
                       <button
                         onClick={() => setCurrentModule('attendance')}
-                        className="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 active:scale-95 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
                         title="Buka Presensi Kelas"
                       >
                         <ClipboardCheck className="w-3.5 h-3.5" />

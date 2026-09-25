@@ -654,12 +654,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ${appBgCss}
       }
 
-      /* Dynamic Hero/Greeting Banner (Top of dashboard) */
-      main > div > .rounded-3xl:first-child,
-      main > div > div > .rounded-3xl:first-child,
-      main .theme-hero-banner:first-child,
-      main .rounded-3xl[class*="from-"]:first-child,
-      main [class*="bg-gradient"][class*="rounded-"]:first-child {
+      /* Dynamic Hero/Greeting Banner (Top of dashboard) - only applies when gradient is intended, never override bg-white */
+      main > div > .rounded-3xl[class*="from-"]:not(.bg-white):first-child,
+      main > div > .rounded-3xl[class*="bg-gradient"]:not(.bg-white):first-child,
+      main > div > div > .rounded-3xl[class*="from-"]:not(.bg-white):first-child,
+      main > div > div > .rounded-3xl[class*="bg-gradient"]:not(.bg-white):first-child,
+      main .theme-hero-banner:not(.bg-white):first-child {
         background: linear-gradient(135deg, ${themeConfig.primaryColor} 0%, ${themeConfig.accentColor} 100%) !important;
         border-radius: var(--theme-card-radius) !important;
         box-shadow: var(--theme-card-shadow) !important;
